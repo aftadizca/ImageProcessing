@@ -20,17 +20,19 @@ namespace ImageProcessing
         private Bitmap bmpAwal;
         private Bitmap bmpHPF;
         private Bitmap bmpLPF;
-        private Bitmap bmpOutput;
+        private Bitmap bmpMedian;
         private int bmpW;
         private int bmpH;
 
-        private int[][] HPFSet = new int[][] { new int[] { -1,0,-1 },
-                                               new int[] { 0,4,0 },
-                                               new int[] { -1,0,-1 }};
+        private int[][] HPFSet = new int[][] { new int[] { -1,-1,-1 },
+                                               new int[] { -1,8,-1 },
+                                               new int[] { -1,-1,-1 }};
 
-        private int[][] LPFSet = new int[][] { new int[] { 0,1,0 },
-                                               new int[] { 1,4,1 },
-                                               new int[] { 0,1,0 }};
+        private int[][] LPFSet = new int[][] { new int[] { 1,1,1 },
+                                               new int[] { 1,1,1 },
+                                               new int[] { 1,1,1 }};
+
+        private int nMatrix = 3;
 
 
         public int LPFGetPixel(int[][] set, Bitmap bmp, int h, int w)
@@ -44,7 +46,7 @@ namespace ImageProcessing
                 int setx = 0;
                 for (int x = -n; x <=n; x++)
                 {   
-                     if( (h+y > 0 && h + y < bmp.Height - 1) && (w+x > 0 && w + x < bmp.Width - 1))
+                     if( (h+y >= 0 && h + y <= bmp.Height - 1) && (w+x >= 0 && w + x <= bmp.Width - 1))
                     {
                         if (set[sety][setx] != 0)
                         {
@@ -80,7 +82,7 @@ namespace ImageProcessing
                 int setx = 0;
                 for (int x = -n; x <= n; x++)
                 {
-                    if ((h + y > 0 && h + y < bmp.Height - 1) && (w + x > 0 && w + x < bmp.Width - 1))
+                    if ((h + y >= 0 && h + y <= bmp.Height - 1) && (w + x >= 0 && w + x <= bmp.Width - 1))
                     {
                         if (set[sety][setx] != 0)
                         {
@@ -103,6 +105,26 @@ namespace ImageProcessing
 
             return a;
 
+        }
+
+        public int MedianGetPixel(Bitmap bmp, int h, int w, int nMatrix)
+        {   
+            int n = nMatrix / 2;
+            List<int> pixel = new List<int>();
+
+            for (int y = -n; y <= n; y++)
+            {  
+                for (int x = -n; x <= n; x++)
+                {
+                    if ((h + y >= 0 && h + y <= bmp.Height - 1) && (w + x >= 0 && w + x <= bmp.Width - 1))
+                    {  
+                        pixel.Add(bmp.GetPixel(w + x, h + y).R);
+                    } 
+                }
+            } 
+            pixel = pixel.OrderBy(x => x).ToList();
+            Console.WriteLine($"count:{pixel.Count()} array:{string.Join(",", pixel.ToArray())} select:{pixel[(pixel.Count()) / 2]}");
+            return pixel[(pixel.Count())/2];
         }
 
         public void ShowProgressBar(int max)
@@ -165,6 +187,7 @@ namespace ImageProcessing
                 toGrayscaleBW.RunWorkerAsync(argument: bmp);
                 bmpHPF = null;
                 bmpLPF = null;
+                bmpMedian = null;
             }
 
         }
@@ -381,13 +404,10 @@ namespace ImageProcessing
             try
             {
                 if (bmpLPF == null)
-                {
-                    if (!toGrayscaleBW.IsBusy)
-                    {
-                        ShowProgressBar(bmpAwal.Height - 1);
-                        bmpLPF = new Bitmap(bmpAwal);
-                        LPF.RunWorkerAsync(argument: bmpLPF);
-                    } 
+                {  
+                    ShowProgressBar(bmpAwal.Height - 1);
+                    bmpLPF = new Bitmap(bmpAwal);
+                    LPF.RunWorkerAsync(argument: bmpLPF);  
                 }
                 else
                 {
@@ -443,6 +463,65 @@ namespace ImageProcessing
                         c.Enabled = true;
                     }
                 }
+            }
+        }
+
+        private void Median_DoWork(object sender, DoWorkEventArgs e)
+        {
+            if (Median.IsBusy)
+            {
+                Median.CancelAsync();
+            }
+
+            var bmp = e.Argument as Bitmap;
+            for (int h = 0; h < bmp.Height; h++)
+            {
+                for (int w = 0; w < bmp.Width; w++)
+                {    
+                    int pixel = MedianGetPixel(bmp, h, w, nMatrix); 
+
+                    bmp.SetPixel(w, h, Color.FromArgb(pixel, pixel, pixel));
+                }
+
+                Median.ReportProgress(h);
+            }
+            e.Result = bmp;
+        }
+
+        private void Median_ProgressChanged(object sender, ProgressChangedEventArgs e)
+        {
+            progressBar1.Value = e.ProgressPercentage;
+        }
+
+        private void Median_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            if (e.Cancelled) MessageBox.Show("Operation was canceled");
+            else if (e.Error != null) MessageBox.Show(e.Error.Message);
+            else
+                progressBar1.Visible = false;
+            ImageBox.Image = e.Result as Bitmap;
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                if (bmpMedian == null)
+                {
+                    ShowProgressBar(bmpAwal.Height - 1);
+                    bmpMedian = new Bitmap(bmpAwal);
+                    Median.RunWorkerAsync(argument: bmpMedian);
+                }
+                else
+                {
+                    ImageBox.Image = bmpMedian;
+                }
+
+            }
+            catch (NullReferenceException ex)
+            {
+                MessageBox.Show(this, "Pilih gambar terlebih dahulu", "ERROR", MessageBoxButtons.OK, MessageBoxIcon.Asterisk);
+
             }
         }
     }

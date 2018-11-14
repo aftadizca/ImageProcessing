@@ -47,6 +47,7 @@
             this.sETTINGToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.hPFSettingToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.lPFSettingToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.Median = new System.ComponentModel.BackgroundWorker();
             ((System.ComponentModel.ISupportInitialize)(this.ImageBox)).BeginInit();
             this.panel1.SuspendLayout();
             this.panel2.SuspendLayout();
@@ -121,7 +122,7 @@
             this.button4.Location = new System.Drawing.Point(3, 3);
             this.button4.Name = "button4";
             this.button4.Size = new System.Drawing.Size(161, 37);
-            this.button4.TabIndex = 8;
+            this.button4.TabIndex = 20;
             this.button4.Text = "DEFAULT";
             this.button4.UseVisualStyleBackColor = false;
             this.button4.Click += new System.EventHandler(this.button4_Click);
@@ -137,7 +138,7 @@
             this.button3.Location = new System.Drawing.Point(170, 3);
             this.button3.Name = "button3";
             this.button3.Size = new System.Drawing.Size(161, 37);
-            this.button3.TabIndex = 7;
+            this.button3.TabIndex = 23;
             this.button3.Text = "LPF";
             this.button3.UseVisualStyleBackColor = false;
             this.button3.Click += new System.EventHandler(this.button3_Click);
@@ -153,9 +154,10 @@
             this.button2.Location = new System.Drawing.Point(3, 89);
             this.button2.Name = "button2";
             this.button2.Size = new System.Drawing.Size(161, 37);
-            this.button2.TabIndex = 6;
+            this.button2.TabIndex = 22;
             this.button2.Text = "MEDIAN";
             this.button2.UseVisualStyleBackColor = false;
+            this.button2.Click += new System.EventHandler(this.button2_Click);
             this.button2.MouseDown += new System.Windows.Forms.MouseEventHandler(this.button4_MouseDown);
             // 
             // button1
@@ -168,7 +170,7 @@
             this.button1.Location = new System.Drawing.Point(3, 46);
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(161, 37);
-            this.button1.TabIndex = 5;
+            this.button1.TabIndex = 21;
             this.button1.Text = "HPF";
             this.button1.UseVisualStyleBackColor = false;
             this.button1.Click += new System.EventHandler(this.button1_Click);
@@ -198,14 +200,14 @@
             // oPENToolStripMenuItem
             // 
             this.oPENToolStripMenuItem.Name = "oPENToolStripMenuItem";
-            this.oPENToolStripMenuItem.Size = new System.Drawing.Size(123, 22);
+            this.oPENToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.oPENToolStripMenuItem.Text = "OPEN";
             this.oPENToolStripMenuItem.Click += new System.EventHandler(this.oPENToolStripMenuItem_Click);
             // 
             // sAVEToolStripMenuItem
             // 
             this.sAVEToolStripMenuItem.Name = "sAVEToolStripMenuItem";
-            this.sAVEToolStripMenuItem.Size = new System.Drawing.Size(123, 22);
+            this.sAVEToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.sAVEToolStripMenuItem.Text = "SAVE AS..";
             this.sAVEToolStripMenuItem.Click += new System.EventHandler(this.sAVEToolStripMenuItem_Click);
             // 
@@ -245,6 +247,14 @@
             this.lPFSettingToolStripMenuItem.Name = "lPFSettingToolStripMenuItem";
             this.lPFSettingToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.lPFSettingToolStripMenuItem.Text = "LPF Setting";
+            // 
+            // Median
+            // 
+            this.Median.WorkerReportsProgress = true;
+            this.Median.WorkerSupportsCancellation = true;
+            this.Median.DoWork += new System.ComponentModel.DoWorkEventHandler(this.Median_DoWork);
+            this.Median.ProgressChanged += new System.ComponentModel.ProgressChangedEventHandler(this.Median_ProgressChanged);
+            this.Median.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.Median_RunWorkerCompleted);
             // 
             // Form1
             // 
@@ -289,6 +299,7 @@
         private System.Windows.Forms.ToolStripMenuItem sETTINGToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem hPFSettingToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem lPFSettingToolStripMenuItem;
+        private System.ComponentModel.BackgroundWorker Median;
     }
 }
 

@@ -1,6 +1,6 @@
 ﻿namespace ImageProcessing
 {
-    partial class LPFSetting
+    partial class HPFSetting
     {
         /// <summary>
         /// Required designer variable.
@@ -52,16 +52,17 @@
             this.textBox1.Size = new System.Drawing.Size(211, 221);
             this.textBox1.TabIndex = 1;
             this.textBox1.WordWrap = false;
+            this.textBox1.TextChanged += new System.EventHandler(this.textBox1_TextChanged);
             // 
-            // LPFSetting
+            // HPFSetting
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(237, 300);
             this.Controls.Add(this.textBox1);
             this.Controls.Add(this.button1);
-            this.Name = "LPFSetting";
-            this.Text = "LPFSetting";
+            this.Name = "HPFSetting";
+            this.Text = "HPFSetting";
             this.Load += new System.EventHandler(this.LPFSetting_Load);
             this.ResumeLayout(false);
             this.PerformLayout();

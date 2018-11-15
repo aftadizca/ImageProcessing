@@ -19,6 +19,8 @@ namespace ImageProcessing
         //HPF pakai 1/9
 
         private LPFSetting LPFSetting;
+        private HPFSetting HPFSetting;
+        private MedianSetting MedianSetting;
 
         private Bitmap bmpAwal;
         private Bitmap bmpHPF;
@@ -443,11 +445,56 @@ namespace ImageProcessing
                 if(LPFSetting.ShowDialog() == DialogResult.OK)
                 {
                     this.LPFSet = LPFSetting.LPFSet;
-                    bmpLPF = null;
-                    button3.PerformClick();
+                    if (bmpLPF!=null)
+                    {
+                        bmpLPF = null;
+                        button4_MouseDown(buttonLPF, new MouseEventArgs(MouseButtons.Left, 1, 0, 0, 0));
+                        buttonLPF.PerformClick(); 
+                    }
                 }
             }
            
+        }
+
+        private void sETTINGToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void hPFSettingToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            using (HPFSetting = new HPFSetting(HPFSet))
+            {
+                if (HPFSetting.ShowDialog() == DialogResult.OK)
+                {
+                    this.HPFSet = HPFSetting.HPFSet;
+                    if (bmpHPF != null)
+                    {
+                        bmpHPF = null;
+                        button4_MouseDown(buttonHPF, new MouseEventArgs(MouseButtons.Left, 1, 0, 0, 0));
+                        buttonHPF.PerformClick();
+                    }
+                }
+                    
+            }
+        }
+
+        private void medianSettingToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            using (MedianSetting = new MedianSetting(MedianLenght))
+            {
+                if (MedianSetting.ShowDialog() == DialogResult.OK)
+                {
+                    this.MedianLenght = MedianSetting.MedianLenght;
+                    if (bmpMedian != null)
+                    {
+                        bmpMedian = null;
+                        button4_MouseDown(buttonMedian, new MouseEventArgs(MouseButtons.Left, 1, 0, 0, 0));
+                        buttonMedian.PerformClick();
+                    }
+                }
+
+            }
         }
     }
 }

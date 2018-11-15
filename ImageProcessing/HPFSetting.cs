@@ -10,24 +10,21 @@ using System.Windows.Forms;
 
 namespace ImageProcessing
 {
-    public partial class LPFSetting : Form
-    {
+    public partial class HPFSetting : Form
+    {   
+        public int[][] HPFSet { get; set; }
 
-        public string msg { get; set; } = "Form 2";
-
-        public int[][] LPFSet { get; set; }
-
-        public LPFSetting()
+        public HPFSetting()
         {
             InitializeComponent();
         }
 
-        public LPFSetting(int[][] LPF)
+        public HPFSetting(int[][] HPF)
         {
             StringBuilder sb = new StringBuilder();
-            foreach(var item in LPF)
+            foreach(var item in HPF)
             {
-                if(LPF.Last() == item)
+                if(HPF.Last() == item)
                 {
                     sb.Append(string.Join(",", item));
                 }
@@ -64,13 +61,18 @@ namespace ImageProcessing
                     var intArr = Array.ConvertAll(item, x => int.Parse(x)).ToList();
                     temp.Add(intArr);
 
-                    this.LPFSet = temp.Select(p => p.ToArray()).ToArray();
+                    this.HPFSet = temp.Select(p => p.ToArray()).ToArray();
                     this.DialogResult = DialogResult.OK;
                 }
             }
         }
 
         private void richTextBox1_TextChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void textBox1_TextChanged(object sender, EventArgs e)
         {
 
         }

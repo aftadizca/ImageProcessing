@@ -34,22 +34,21 @@
             this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
             this.toGrayscaleBW = new System.ComponentModel.BackgroundWorker();
             this.panel2 = new System.Windows.Forms.Panel();
-            this.button5 = new System.Windows.Forms.Button();
             this.button4 = new System.Windows.Forms.Button();
-            this.button3 = new System.Windows.Forms.Button();
-            this.button2 = new System.Windows.Forms.Button();
-            this.button1 = new System.Windows.Forms.Button();
+            this.buttonLPF = new System.Windows.Forms.Button();
+            this.buttonMedian = new System.Windows.Forms.Button();
+            this.buttonHPF = new System.Windows.Forms.Button();
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.fILEToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.oPENToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.sAVEToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.sETTINGToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.hPFSettingToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.lPFSettingToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.medianSettingToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.HPF = new System.ComponentModel.BackgroundWorker();
             this.LPF = new System.ComponentModel.BackgroundWorker();
             this.Median = new System.ComponentModel.BackgroundWorker();
+            this.hPFSettingToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             ((System.ComponentModel.ISupportInitialize)(this.ImageBox)).BeginInit();
             this.panel1.SuspendLayout();
             this.panel2.SuspendLayout();
@@ -106,25 +105,14 @@
             // 
             // panel2
             // 
-            this.panel2.Controls.Add(this.button5);
             this.panel2.Controls.Add(this.button4);
-            this.panel2.Controls.Add(this.button3);
-            this.panel2.Controls.Add(this.button2);
-            this.panel2.Controls.Add(this.button1);
+            this.panel2.Controls.Add(this.buttonLPF);
+            this.panel2.Controls.Add(this.buttonMedian);
+            this.panel2.Controls.Add(this.buttonHPF);
             this.panel2.Location = new System.Drawing.Point(12, 447);
             this.panel2.Name = "panel2";
             this.panel2.Size = new System.Drawing.Size(680, 130);
             this.panel2.TabIndex = 4;
-            // 
-            // button5
-            // 
-            this.button5.Location = new System.Drawing.Point(431, 16);
-            this.button5.Name = "button5";
-            this.button5.Size = new System.Drawing.Size(75, 23);
-            this.button5.TabIndex = 24;
-            this.button5.Text = "button5";
-            this.button5.UseVisualStyleBackColor = true;
-            this.button5.Click += new System.EventHandler(this.button5_Click);
             // 
             // button4
             // 
@@ -142,53 +130,53 @@
             this.button4.Click += new System.EventHandler(this.button4_Click);
             this.button4.MouseDown += new System.Windows.Forms.MouseEventHandler(this.button4_MouseDown);
             // 
-            // button3
+            // buttonLPF
             // 
-            this.button3.BackColor = System.Drawing.SystemColors.ControlDark;
-            this.button3.FlatAppearance.BorderSize = 0;
-            this.button3.FlatAppearance.CheckedBackColor = System.Drawing.Color.Red;
-            this.button3.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.button3.Font = new System.Drawing.Font("Century Gothic", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.button3.Location = new System.Drawing.Point(170, 3);
-            this.button3.Name = "button3";
-            this.button3.Size = new System.Drawing.Size(161, 37);
-            this.button3.TabIndex = 23;
-            this.button3.Text = "LPF";
-            this.button3.UseVisualStyleBackColor = false;
-            this.button3.Click += new System.EventHandler(this.button3_Click);
-            this.button3.MouseDown += new System.Windows.Forms.MouseEventHandler(this.button4_MouseDown);
+            this.buttonLPF.BackColor = System.Drawing.SystemColors.ControlDark;
+            this.buttonLPF.FlatAppearance.BorderSize = 0;
+            this.buttonLPF.FlatAppearance.CheckedBackColor = System.Drawing.Color.Red;
+            this.buttonLPF.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.buttonLPF.Font = new System.Drawing.Font("Century Gothic", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.buttonLPF.Location = new System.Drawing.Point(170, 3);
+            this.buttonLPF.Name = "buttonLPF";
+            this.buttonLPF.Size = new System.Drawing.Size(161, 37);
+            this.buttonLPF.TabIndex = 23;
+            this.buttonLPF.Text = "LPF";
+            this.buttonLPF.UseVisualStyleBackColor = false;
+            this.buttonLPF.Click += new System.EventHandler(this.button3_Click);
+            this.buttonLPF.MouseDown += new System.Windows.Forms.MouseEventHandler(this.button4_MouseDown);
             // 
-            // button2
+            // buttonMedian
             // 
-            this.button2.BackColor = System.Drawing.SystemColors.ControlDark;
-            this.button2.FlatAppearance.BorderSize = 0;
-            this.button2.FlatAppearance.CheckedBackColor = System.Drawing.Color.Red;
-            this.button2.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.button2.Font = new System.Drawing.Font("Century Gothic", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.button2.Location = new System.Drawing.Point(3, 89);
-            this.button2.Name = "button2";
-            this.button2.Size = new System.Drawing.Size(161, 37);
-            this.button2.TabIndex = 22;
-            this.button2.Text = "MEDIAN";
-            this.button2.UseVisualStyleBackColor = false;
-            this.button2.Click += new System.EventHandler(this.button2_Click);
-            this.button2.MouseDown += new System.Windows.Forms.MouseEventHandler(this.button4_MouseDown);
+            this.buttonMedian.BackColor = System.Drawing.SystemColors.ControlDark;
+            this.buttonMedian.FlatAppearance.BorderSize = 0;
+            this.buttonMedian.FlatAppearance.CheckedBackColor = System.Drawing.Color.Red;
+            this.buttonMedian.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.buttonMedian.Font = new System.Drawing.Font("Century Gothic", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.buttonMedian.Location = new System.Drawing.Point(3, 89);
+            this.buttonMedian.Name = "buttonMedian";
+            this.buttonMedian.Size = new System.Drawing.Size(161, 37);
+            this.buttonMedian.TabIndex = 22;
+            this.buttonMedian.Text = "MEDIAN";
+            this.buttonMedian.UseVisualStyleBackColor = false;
+            this.buttonMedian.Click += new System.EventHandler(this.button2_Click);
+            this.buttonMedian.MouseDown += new System.Windows.Forms.MouseEventHandler(this.button4_MouseDown);
             // 
-            // button1
+            // buttonHPF
             // 
-            this.button1.BackColor = System.Drawing.SystemColors.ControlDark;
-            this.button1.FlatAppearance.BorderSize = 0;
-            this.button1.FlatAppearance.CheckedBackColor = System.Drawing.Color.Red;
-            this.button1.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.button1.Font = new System.Drawing.Font("Century Gothic", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.button1.Location = new System.Drawing.Point(3, 46);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(161, 37);
-            this.button1.TabIndex = 21;
-            this.button1.Text = "HPF";
-            this.button1.UseVisualStyleBackColor = false;
-            this.button1.Click += new System.EventHandler(this.button1_Click);
-            this.button1.MouseDown += new System.Windows.Forms.MouseEventHandler(this.button4_MouseDown);
+            this.buttonHPF.BackColor = System.Drawing.SystemColors.ControlDark;
+            this.buttonHPF.FlatAppearance.BorderSize = 0;
+            this.buttonHPF.FlatAppearance.CheckedBackColor = System.Drawing.Color.Red;
+            this.buttonHPF.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.buttonHPF.Font = new System.Drawing.Font("Century Gothic", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.buttonHPF.Location = new System.Drawing.Point(3, 46);
+            this.buttonHPF.Name = "buttonHPF";
+            this.buttonHPF.Size = new System.Drawing.Size(161, 37);
+            this.buttonHPF.TabIndex = 21;
+            this.buttonHPF.Text = "HPF";
+            this.buttonHPF.UseVisualStyleBackColor = false;
+            this.buttonHPF.Click += new System.EventHandler(this.button1_Click);
+            this.buttonHPF.MouseDown += new System.Windows.Forms.MouseEventHandler(this.button4_MouseDown);
             // 
             // menuStrip1
             // 
@@ -214,14 +202,14 @@
             // oPENToolStripMenuItem
             // 
             this.oPENToolStripMenuItem.Name = "oPENToolStripMenuItem";
-            this.oPENToolStripMenuItem.Size = new System.Drawing.Size(123, 22);
+            this.oPENToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.oPENToolStripMenuItem.Text = "OPEN";
             this.oPENToolStripMenuItem.Click += new System.EventHandler(this.oPENToolStripMenuItem_Click);
             // 
             // sAVEToolStripMenuItem
             // 
             this.sAVEToolStripMenuItem.Name = "sAVEToolStripMenuItem";
-            this.sAVEToolStripMenuItem.Size = new System.Drawing.Size(123, 22);
+            this.sAVEToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.sAVEToolStripMenuItem.Text = "SAVE AS..";
             this.sAVEToolStripMenuItem.Click += new System.EventHandler(this.sAVEToolStripMenuItem_Click);
             // 
@@ -234,25 +222,21 @@
             this.sETTINGToolStripMenuItem.Name = "sETTINGToolStripMenuItem";
             this.sETTINGToolStripMenuItem.Size = new System.Drawing.Size(65, 20);
             this.sETTINGToolStripMenuItem.Text = "SETTING";
-            // 
-            // hPFSettingToolStripMenuItem
-            // 
-            this.hPFSettingToolStripMenuItem.Name = "hPFSettingToolStripMenuItem";
-            this.hPFSettingToolStripMenuItem.Size = new System.Drawing.Size(154, 22);
-            this.hPFSettingToolStripMenuItem.Text = "HPF Setting";
+            this.sETTINGToolStripMenuItem.Click += new System.EventHandler(this.sETTINGToolStripMenuItem_Click);
             // 
             // lPFSettingToolStripMenuItem
             // 
             this.lPFSettingToolStripMenuItem.Name = "lPFSettingToolStripMenuItem";
-            this.lPFSettingToolStripMenuItem.Size = new System.Drawing.Size(154, 22);
+            this.lPFSettingToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.lPFSettingToolStripMenuItem.Text = "LPF Setting";
             this.lPFSettingToolStripMenuItem.Click += new System.EventHandler(this.lPFSettingToolStripMenuItem_Click);
             // 
             // medianSettingToolStripMenuItem
             // 
             this.medianSettingToolStripMenuItem.Name = "medianSettingToolStripMenuItem";
-            this.medianSettingToolStripMenuItem.Size = new System.Drawing.Size(154, 22);
+            this.medianSettingToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.medianSettingToolStripMenuItem.Text = "Median Setting";
+            this.medianSettingToolStripMenuItem.Click += new System.EventHandler(this.medianSettingToolStripMenuItem_Click);
             // 
             // HPF
             // 
@@ -277,6 +261,13 @@
             this.Median.DoWork += new System.ComponentModel.DoWorkEventHandler(this.Median_DoWork);
             this.Median.ProgressChanged += new System.ComponentModel.ProgressChangedEventHandler(this.Median_ProgressChanged);
             this.Median.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.Median_RunWorkerCompleted);
+            // 
+            // hPFSettingToolStripMenuItem
+            // 
+            this.hPFSettingToolStripMenuItem.Name = "hPFSettingToolStripMenuItem";
+            this.hPFSettingToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.hPFSettingToolStripMenuItem.Text = "HPF Setting";
+            this.hPFSettingToolStripMenuItem.Click += new System.EventHandler(this.hPFSettingToolStripMenuItem_Click);
             // 
             // Form1
             // 
@@ -308,9 +299,9 @@
         private System.Windows.Forms.ProgressBar progressBar1;
         private System.ComponentModel.BackgroundWorker toGrayscaleBW;
         private System.Windows.Forms.Panel panel2;
-        private System.Windows.Forms.Button button1;
-        private System.Windows.Forms.Button button3;
-        private System.Windows.Forms.Button button2;
+        private System.Windows.Forms.Button buttonHPF;
+        private System.Windows.Forms.Button buttonLPF;
+        private System.Windows.Forms.Button buttonMedian;
         private System.Windows.Forms.MenuStrip menuStrip1;
         private System.Windows.Forms.ToolStripMenuItem fILEToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem oPENToolStripMenuItem;
@@ -319,11 +310,10 @@
         private System.ComponentModel.BackgroundWorker HPF;
         private System.ComponentModel.BackgroundWorker LPF;
         private System.Windows.Forms.ToolStripMenuItem sETTINGToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem hPFSettingToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem lPFSettingToolStripMenuItem;
         private System.ComponentModel.BackgroundWorker Median;
         private System.Windows.Forms.ToolStripMenuItem medianSettingToolStripMenuItem;
-        private System.Windows.Forms.Button button5;
+        private System.Windows.Forms.ToolStripMenuItem hPFSettingToolStripMenuItem;
     }
 }
 

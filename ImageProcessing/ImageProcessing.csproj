@@ -52,19 +52,37 @@
     <Compile Include="Form1.Designer.cs">
       <DependentUpon>Form1.cs</DependentUpon>
     </Compile>
+    <Compile Include="HPFSetting.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="HPFSetting.designer.cs">
+      <DependentUpon>HPFSetting.cs</DependentUpon>
+    </Compile>
     <Compile Include="LPFSetting.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="LPFSetting.Designer.cs">
       <DependentUpon>LPFSetting.cs</DependentUpon>
     </Compile>
+    <Compile Include="MedianSetting.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="MedianSetting.designer.cs">
+      <DependentUpon>MedianSetting.cs</DependentUpon>
+    </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="Form1.resx">
       <DependentUpon>Form1.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="HPFSetting.resx">
+      <DependentUpon>HPFSetting.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="LPFSetting.resx">
       <DependentUpon>LPFSetting.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="MedianSetting.resx">
+      <DependentUpon>MedianSetting.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>

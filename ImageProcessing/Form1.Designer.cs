@@ -34,6 +34,7 @@
             this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
             this.toGrayscaleBW = new System.ComponentModel.BackgroundWorker();
             this.panel2 = new System.Windows.Forms.Panel();
+            this.button5 = new System.Windows.Forms.Button();
             this.button4 = new System.Windows.Forms.Button();
             this.button3 = new System.Windows.Forms.Button();
             this.button2 = new System.Windows.Forms.Button();
@@ -42,11 +43,12 @@
             this.fILEToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.oPENToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.sAVEToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.HPF = new System.ComponentModel.BackgroundWorker();
-            this.LPF = new System.ComponentModel.BackgroundWorker();
             this.sETTINGToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.hPFSettingToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.lPFSettingToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.medianSettingToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.HPF = new System.ComponentModel.BackgroundWorker();
+            this.LPF = new System.ComponentModel.BackgroundWorker();
             this.Median = new System.ComponentModel.BackgroundWorker();
             ((System.ComponentModel.ISupportInitialize)(this.ImageBox)).BeginInit();
             this.panel1.SuspendLayout();
@@ -81,6 +83,7 @@
             // 
             // progressBar1
             // 
+            this.progressBar1.BackColor = System.Drawing.Color.Red;
             this.progressBar1.Location = new System.Drawing.Point(12, 396);
             this.progressBar1.Name = "progressBar1";
             this.progressBar1.Size = new System.Drawing.Size(680, 5);
@@ -103,6 +106,7 @@
             // 
             // panel2
             // 
+            this.panel2.Controls.Add(this.button5);
             this.panel2.Controls.Add(this.button4);
             this.panel2.Controls.Add(this.button3);
             this.panel2.Controls.Add(this.button2);
@@ -111,6 +115,16 @@
             this.panel2.Name = "panel2";
             this.panel2.Size = new System.Drawing.Size(680, 130);
             this.panel2.TabIndex = 4;
+            // 
+            // button5
+            // 
+            this.button5.Location = new System.Drawing.Point(431, 16);
+            this.button5.Name = "button5";
+            this.button5.Size = new System.Drawing.Size(75, 23);
+            this.button5.TabIndex = 24;
+            this.button5.Text = "button5";
+            this.button5.UseVisualStyleBackColor = true;
+            this.button5.Click += new System.EventHandler(this.button5_Click);
             // 
             // button4
             // 
@@ -200,16 +214,45 @@
             // oPENToolStripMenuItem
             // 
             this.oPENToolStripMenuItem.Name = "oPENToolStripMenuItem";
-            this.oPENToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.oPENToolStripMenuItem.Size = new System.Drawing.Size(123, 22);
             this.oPENToolStripMenuItem.Text = "OPEN";
             this.oPENToolStripMenuItem.Click += new System.EventHandler(this.oPENToolStripMenuItem_Click);
             // 
             // sAVEToolStripMenuItem
             // 
             this.sAVEToolStripMenuItem.Name = "sAVEToolStripMenuItem";
-            this.sAVEToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.sAVEToolStripMenuItem.Size = new System.Drawing.Size(123, 22);
             this.sAVEToolStripMenuItem.Text = "SAVE AS..";
             this.sAVEToolStripMenuItem.Click += new System.EventHandler(this.sAVEToolStripMenuItem_Click);
+            // 
+            // sETTINGToolStripMenuItem
+            // 
+            this.sETTINGToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.hPFSettingToolStripMenuItem,
+            this.lPFSettingToolStripMenuItem,
+            this.medianSettingToolStripMenuItem});
+            this.sETTINGToolStripMenuItem.Name = "sETTINGToolStripMenuItem";
+            this.sETTINGToolStripMenuItem.Size = new System.Drawing.Size(65, 20);
+            this.sETTINGToolStripMenuItem.Text = "SETTING";
+            // 
+            // hPFSettingToolStripMenuItem
+            // 
+            this.hPFSettingToolStripMenuItem.Name = "hPFSettingToolStripMenuItem";
+            this.hPFSettingToolStripMenuItem.Size = new System.Drawing.Size(154, 22);
+            this.hPFSettingToolStripMenuItem.Text = "HPF Setting";
+            // 
+            // lPFSettingToolStripMenuItem
+            // 
+            this.lPFSettingToolStripMenuItem.Name = "lPFSettingToolStripMenuItem";
+            this.lPFSettingToolStripMenuItem.Size = new System.Drawing.Size(154, 22);
+            this.lPFSettingToolStripMenuItem.Text = "LPF Setting";
+            this.lPFSettingToolStripMenuItem.Click += new System.EventHandler(this.lPFSettingToolStripMenuItem_Click);
+            // 
+            // medianSettingToolStripMenuItem
+            // 
+            this.medianSettingToolStripMenuItem.Name = "medianSettingToolStripMenuItem";
+            this.medianSettingToolStripMenuItem.Size = new System.Drawing.Size(154, 22);
+            this.medianSettingToolStripMenuItem.Text = "Median Setting";
             // 
             // HPF
             // 
@@ -226,27 +269,6 @@
             this.LPF.DoWork += new System.ComponentModel.DoWorkEventHandler(this.LPF_DoWork);
             this.LPF.ProgressChanged += new System.ComponentModel.ProgressChangedEventHandler(this.LPF_ProgressChanged);
             this.LPF.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.LPF_RunWorkerCompleted);
-            // 
-            // sETTINGToolStripMenuItem
-            // 
-            this.sETTINGToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.hPFSettingToolStripMenuItem,
-            this.lPFSettingToolStripMenuItem});
-            this.sETTINGToolStripMenuItem.Name = "sETTINGToolStripMenuItem";
-            this.sETTINGToolStripMenuItem.Size = new System.Drawing.Size(65, 20);
-            this.sETTINGToolStripMenuItem.Text = "SETTING";
-            // 
-            // hPFSettingToolStripMenuItem
-            // 
-            this.hPFSettingToolStripMenuItem.Name = "hPFSettingToolStripMenuItem";
-            this.hPFSettingToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.hPFSettingToolStripMenuItem.Text = "HPF Setting";
-            // 
-            // lPFSettingToolStripMenuItem
-            // 
-            this.lPFSettingToolStripMenuItem.Name = "lPFSettingToolStripMenuItem";
-            this.lPFSettingToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.lPFSettingToolStripMenuItem.Text = "LPF Setting";
             // 
             // Median
             // 
@@ -300,6 +322,8 @@
         private System.Windows.Forms.ToolStripMenuItem hPFSettingToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem lPFSettingToolStripMenuItem;
         private System.ComponentModel.BackgroundWorker Median;
+        private System.Windows.Forms.ToolStripMenuItem medianSettingToolStripMenuItem;
+        private System.Windows.Forms.Button button5;
     }
 }
 

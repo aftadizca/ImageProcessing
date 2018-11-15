@@ -227,65 +227,6 @@ namespace ImageProcessing
                 {  
                     int pixel = HPFGetPixel(HPFSet,bmp,h,w);
 
-                    #region Alternative Long Version
-                    //if (h == 0 && w == 0)  //kiri atas
-                    //{
-                    //    // Console.WriteLine("kiriatas");
-                    //    pixel = (bmp.GetPixel(w, h).R * 4 - bmp.GetPixel(w + 1, h + 1).R);
-                    //}
-                    //else if (h == 0 && w == bmp.Width - 1)  // kanan atas
-                    //{
-                    //    //Console.WriteLine("kananatas");
-                    //    pixel = (bmp.GetPixel(w, h).R * 4 - bmp.GetPixel(w - 1, h + 1).R);
-                    //}
-                    //else if (h == 0 && w > 0) //tengah atas
-                    //{
-                    //    // Console.WriteLine("tengahatas");
-                    //    pixel = (bmp.GetPixel(w, h).R * 4 - bmp.GetPixel(w + 1, h + 1).R - bmp.GetPixel(w - 1, h + 1).R);
-                    //}
-                    //else if (h == bmp.Height - 1 && w == 0)  // kiri bawah
-                    //{
-                    //    // Console.WriteLine("kiribawah");
-                    //    pixel = (bmp.GetPixel(w, h).R * 4 - bmp.GetPixel(w + 1, h - 1).R);
-                    //}
-                    //else if (h == bmp.Height - 1 && w == bmp.Width - 1) // kanan bawah
-                    //{
-                    //    // Console.WriteLine("kiribawah");
-                    //    pixel = (bmp.GetPixel(w, h).R * 4 - bmp.GetPixel(w - 1, h - 1).R);
-                    //}
-                    //else if (h == bmp.Height - 1 && w > 0) //tengah bawah
-                    //{
-                    //    //Console.WriteLine("tengahbawah");
-                    //    pixel = (bmp.GetPixel(w, h).R * 4 - bmp.GetPixel(w - 1, h - 1).R - bmp.GetPixel(w + 1, h - 1).R);
-                    //}
-                    //else if (h > 0 && w == 0)  // kiri tengah
-                    //{
-                    //    //Console.WriteLine("kiritengah");
-                    //    pixel = (bmp.GetPixel(w, h).R * 4 - bmp.GetPixel(w + 1, h + 1).R - bmp.GetPixel(w + 1, h - 1).R);
-                    //}
-                    //else if (h > 0 && w == bmp.Width - 1)  // kanan tengah
-                    //{
-                    //    //Console.WriteLine("kanantengah");
-                    //    pixel = (bmp.GetPixel(w, h).R * 4 - bmp.GetPixel(w - 1, h + 1).R - bmp.GetPixel(w - 1, h - 1).R);
-                    //}
-                    //else
-                    //{
-                    //    //Console.WriteLine("biasa");
-                    //    pixel = (bmp.GetPixel(w, h).R * 4 - bmp.GetPixel(w - 1, h + 1).R - bmp.GetPixel(w - 1, h - 1).R - bmp.GetPixel(w + 1, h - 1).R - bmp.GetPixel(w + 1, h + 1).R);
-                    //}
-
-
-                    //if (pixel < 0)
-                    //{
-                    //    pixel = 0;
-                    //}
-                    //else if (pixel > 255)
-                    //{
-                    //    pixel = 255;
-                    //}
-                    // Console.WriteLine(pixel); 
-                    #endregion
-
                     bmp.SetPixel(w, h, Color.FromArgb(pixel, pixel, pixel));
                 }
 
@@ -326,56 +267,6 @@ namespace ImageProcessing
                 for (int w = 0; w < bmp.Width; w++) { 
 
                     int pixel = LPFGetPixel(LPFSet, bmp, h, w);
-
-                    #region AlternativeLongVersion
-                    //if (h == 0 && w == 0)  //kiri atas
-                    //{
-                    //    // Console.WriteLine("kiriatas");
-                    //    pixel = (bmp.GetPixel(w, h).R * 4 + bmp.GetPixel(w, h + 1).R + bmp.GetPixel(w + 1, h).R ) / 8;
-                    //}
-                    //else if (h == 0 && w == bmp.Width - 1)  // kanan atas
-                    //{
-                    //    //Console.WriteLine("kananatas");
-                    //    pixel = (bmp.GetPixel(w, h).R * 4 + bmp.GetPixel(w, h + 1).R + bmp.GetPixel(w - 1, h).R ) / 8;
-                    //}
-                    //else if (h == 0 && w > 0) //tengah atas
-                    //{
-                    //    // Console.WriteLine("tengahatas");
-                    //    pixel = (bmp.GetPixel(w, h).R * 4 + bmp.GetPixel(w + 1, h).R + bmp.GetPixel(w - 1, h).R + bmp.GetPixel(w, h+1).R) / 8;
-                    //}
-                    //else if (h == bmp.Height - 1 && w == 0)  // kiri bawah
-                    //{
-                    //    // Console.WriteLine("kiribawah");
-                    //    pixel = (bmp.GetPixel(w, h).R * 4 + bmp.GetPixel(w, h - 1).R + bmp.GetPixel(w + 1, h).R ) / 8;
-                    //}
-                    //else if (h == bmp.Height - 1 && w == bmp.Width - 1) // kanan bawah
-                    //{
-                    //    // Console.WriteLine("kananbawah");
-                    //    pixel = (bmp.GetPixel(w, h).R * 4 + bmp.GetPixel(w, h - 1).R + bmp.GetPixel(w - 1, h).R) / 8;
-                    //}
-                    //else if (h == bmp.Height - 1 && w > 0) //tengah bawah
-                    //{
-                    //    //Console.WriteLine("tengahbawah");
-                    //    pixel = (bmp.GetPixel(w, h).R * 4 + bmp.GetPixel(w + 1, h).R + bmp.GetPixel(w - 1, h).R + bmp.GetPixel(w, h - 1).R) / 8;
-                    //}
-                    //else if (h > 0 && w == 0)  // kiri tengah
-                    //{
-                    //    //Console.WriteLine("kiritengah");
-                    //    pixel = (bmp.GetPixel(w, h).R * 4 + bmp.GetPixel(w , h + 1).R + bmp.GetPixel(w, h - 1).R + bmp.GetPixel(w + 1,h).R) / 8;
-                    //}
-                    //else if (h > 0 && w == bmp.Width - 1)  // kanan tengah
-                    //{
-                    //    //Console.WriteLine("kanantengah");
-                    //    pixel = (bmp.GetPixel(w, h).R * 4 + bmp.GetPixel(w, h + 1).R + bmp.GetPixel(w, h - 1).R + bmp.GetPixel(w - 1, h).R) / 8;
-                    //}
-                    //else
-                    //{
-                    //    //Console.WriteLine("biasa");
-                    //    pixel = (bmp.GetPixel(w, h).R * 4 + bmp.GetPixel(w, h + 1).R + bmp.GetPixel(w, h - 1).R + bmp.GetPixel(w - 1 , h).R + bmp.GetPixel(w + 1, h).R) / 8;
-                    //}
-
-                    // Console.WriteLine(pixel); 
-                    #endregion
 
                     bmp.SetPixel(w, h, Color.FromArgb(pixel, pixel, pixel));
                 }

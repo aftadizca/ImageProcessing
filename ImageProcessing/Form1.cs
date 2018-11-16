@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Diagnostics;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -78,6 +80,136 @@ namespace ImageProcessing
 
         }
 
+        public void GrayScale_Parallel(Bitmap bmp)
+        {
+            int progress = 0;
+
+
+            unsafe
+            {  
+                BitmapData bitmapData = bmp.LockBits(new Rectangle(0, 0, bmp.Width, bmp.Height), ImageLockMode.ReadWrite, bmp.PixelFormat);
+                int bytesPerPixel = Image.GetPixelFormatSize(bmp.PixelFormat) / 8;
+                int heightInPixels = bitmapData.Height;
+                int widthInBytes = bitmapData.Width * bytesPerPixel;
+                byte* ptrFirstPixel = (byte*)bitmapData.Scan0;
+
+                Parallel.For(0, heightInPixels, y =>
+                {
+                    byte* currentLine = ptrFirstPixel + (y * bitmapData.Stride);
+
+                    for (int x = 0; x < widthInBytes; x = x + bytesPerPixel)
+                    {
+                        int B = currentLine[x];
+                        int G = currentLine[x + 1];
+                        int R = currentLine[x + 2];
+
+                        int avg = (R + B + G) / 3; 
+
+                        currentLine[x] = (byte)avg;
+                        currentLine[x + 1] = (byte)avg;
+                        currentLine[x + 2] = (byte)avg;
+                    }
+                    progress++;
+                    if(progress % heightInPixels/10 == 0)
+                    {
+                        if(progress/heightInPixels/10 == 10 && progress == heightInPixels)
+                        {
+                            toGrayscaleBW.ReportProgress(10);
+                        }
+                        else if(progress / heightInPixels / 10 == 10 && progress != heightInPixels)
+                        {
+                            
+                        }
+                        else
+                        {
+                            toGrayscaleBW.ReportProgress(10);
+                        }
+                        
+                    }
+                });
+                bmp.UnlockBits(bitmapData);
+            }
+        }
+
+        public void LPF_Parallel(Bitmap bmp, int[][] setLPF)
+        {
+            int progress = 0;
+            unsafe
+            {
+                BitmapData bitmapData = bmp.LockBits(new Rectangle(0, 0, bmp.Width, bmp.Height), ImageLockMode.ReadWrite, bmp.PixelFormat);
+                int bytesPerPixel = Image.GetPixelFormatSize(bmp.PixelFormat) / 8;
+                int heightInPixels = bitmapData.Height;
+                int widthInBytes = bitmapData.Width * bytesPerPixel;
+                byte* ptrFirstPixel = (byte*)bitmapData.Scan0;
+
+                var set = setLPF;
+
+                int total = set.Sum(arr => arr.Sum());
+                int n = set.Length / 2;
+
+                for (int h = 0; h < heightInPixels; h++)
+                {
+                    byte* currentLine = ptrFirstPixel + (h * bitmapData.Stride);
+
+                    for (int w = 0; w < widthInBytes; w = w + bytesPerPixel)
+                    {    
+                        int pixel = 0;
+                        int sety = 0; 
+
+                        for (int y = -n; y <= n; y++)
+                        {
+                            int setx = 0;
+                            for (int x = -n*bytesPerPixel; x <= n*bytesPerPixel; x = x + bytesPerPixel)
+                            {
+                                if ((h + y >= 0 && h + y < heightInPixels) && (w + x >= 0 && w + x < widthInBytes))
+                                {
+                                    if (set[sety][setx] != 0)
+                                    {
+                                        byte* getLine = ptrFirstPixel + ((h+y) * bitmapData.Stride);
+                                        pixel += getLine[w+x];
+                                        //Console.WriteLine($"height:{h + y} width{w + x}");
+                                    }
+                                }
+                                setx++;
+                            }
+                            sety++;
+                        }
+                        var a = pixel / total;
+                        if (a < 0)
+                        {
+                            a = 0;
+                        }
+                        else if (a > 255)
+                        {
+                            a = 255;
+                        }
+                        //Console.WriteLine($"hasil : {a}");
+                        currentLine[w] = (byte)a;
+                        currentLine[w + 1] = (byte)a;
+                        currentLine[w + 2] = (byte)a;
+                    }
+                    progress++;
+                    if (progress % heightInPixels / 10 == 0)
+                    {
+                        if (progress / heightInPixels / 10 == 10 && progress == heightInPixels)
+                        {
+                            LPF.ReportProgress(10);
+                        }
+                        else if (progress / heightInPixels / 10 == 10 && progress != heightInPixels)
+                        {
+
+                        }
+                        else
+                        {
+                            LPF.ReportProgress(10);
+                        }
+
+                    }
+                }
+                bmp.UnlockBits(bitmapData);
+            }
+        }
+
         public int HPFGetPixel(int[][] set, Bitmap bmp, int h, int w)
         {
             int total = 9;
@@ -144,6 +276,7 @@ namespace ImageProcessing
         public Form1()
         {
             InitializeComponent();
+
         }
 
         public Form1(string message)
@@ -153,25 +286,33 @@ namespace ImageProcessing
         }
 
         private void toGrayscaleBW_DoWork(object sender, DoWorkEventArgs e)
-        {    
-            var bmp = e.Argument as Bitmap; 
-            for (int i = 0; i < bmp.Height; i++)
-            {   
-                var w = 0;
-                for (int j = 0; j < bmp.Width; j++)
-                {
-                    w++;
-                    var Average = (bmp.GetPixel(j, i).R + bmp.GetPixel(j, i).G + bmp.GetPixel(j, i).B) / 3;
-                    bmp.SetPixel(j, i, Color.FromArgb(Average, Average, Average));
-                }
-                toGrayscaleBW.ReportProgress(i);
-            }
+        {
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
+            var bmp = e.Argument as Bitmap;
+
+            GrayScale_Parallel(bmp);
+
+            //for (int i = 0; i < bmp.Height; i++)
+            //{   
+            //    var w = 0;
+            //    for (int j = 0; j < bmp.Width; j++)
+            //    {
+            //        w++;
+            //        var Average = (bmp.GetPixel(j, i).R + bmp.GetPixel(j, i).G + bmp.GetPixel(j, i).B) / 3;
+            //        bmp.SetPixel(j, i, Color.FromArgb(Average, Average, Average));
+            //    }
+            //    toGrayscaleBW.ReportProgress(i);
+            //}
+
             e.Result = bmp;
+            sw.Stop();
+            Console.WriteLine($"Grayscale processes in {sw.ElapsedMilliseconds} ms");
         }
 
         private void toGrayscaleBW_ProgressChanged(object sender, ProgressChangedEventArgs e)
         {  
-           progressBar1.Value = e.ProgressPercentage;
+           progressBar1.Value += e.ProgressPercentage;
         }
 
         private void toGrayscaleBW_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
@@ -195,7 +336,8 @@ namespace ImageProcessing
                 bmpAwal = new Bitmap(openFileDialog1.FileName) as Bitmap;
                 bmpH = bmpAwal.Height;
                 bmpW = bmpAwal.Width;
-                ShowProgressBar(bmpH-1);
+                Console.WriteLine($"Image Resolution {bmpAwal.Width} x {bmpAwal.Height} ");
+                ShowProgressBar(100);
                 var bmp = bmpAwal;
                 toGrayscaleBW.RunWorkerAsync(argument: bmp);
                 bmpHPF = null;
@@ -274,27 +416,36 @@ namespace ImageProcessing
             //    LPF.CancelAsync();
             //}
 
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
+
             var bmp = e.Argument as Bitmap;
 
-            for (int h = 0; h < bmp.Height; h++)
-            {
-                for (int w = 0; w < bmp.Width; w++)
-                {
+            LPF_Parallel(bmp, LPFSet);
 
-                    int pixel = LPFGetPixel(LPFSet, bmp, h, w);
+            #region Sequential Version
+            //for (int h = 0; h < bmp.Height; h++)
+            //{
+            //    for (int w = 0; w < bmp.Width; w++)
+            //    {
 
-                    bmp.SetPixel(w, h, Color.FromArgb(pixel, pixel, pixel));
-                }
+            //        int pixel = LPFGetPixel(LPFSet, bmp, h, w);
 
-                LPF.ReportProgress(h);
-            }
+            //        bmp.SetPixel(w, h, Color.FromArgb(pixel, pixel, pixel));
+            //    }
+
+            //    LPF.ReportProgress(h);
+            //} 
+            #endregion
 
             e.Result = bmp;
+            sw.Stop();
+            Console.WriteLine($"Low Passing Filter Processed in {sw.ElapsedMilliseconds} ms");
         }
 
         private void LPF_ProgressChanged(object sender, ProgressChangedEventArgs e)
         {
-            progressBar1.Value = e.ProgressPercentage;
+            progressBar1.Value += e.ProgressPercentage;
         }
 
         private void LPF_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
@@ -313,7 +464,7 @@ namespace ImageProcessing
             {
                 if (bmpLPF == null)
                 {  
-                    ShowProgressBar(bmpAwal.Height -1);
+                    ShowProgressBar(100);
                     bmpLPF = new Bitmap(bmpAwal);
                    
                     LPF.RunWorkerAsync(argument: bmpLPF);  

@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -41,6 +42,8 @@ namespace ImageProcessing
         private int[][] LPFSet = new int[][] { new int[] { 1,1,1 },
                                                new int[] { 1,1,1 },
                                                new int[] { 1,1,1 }};
+
+        private int[,] arrayImage = new int[,] { { 0,0,0,0,0,0,0,0,0,0,0,0 }, { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } };
 
         private int MedianLenght = 3;
 
@@ -139,6 +142,50 @@ namespace ImageProcessing
 
         #endregion
 
+        private unsafe Bitmap BitmapFromArray(Int32[,] pixels, int width, int height)
+        {
+            
+            Bitmap bitmap = new Bitmap(width/3, height, PixelFormat.Format24bppRgb);
+            BitmapData bitmapData = bitmap.LockBits(new Rectangle(0, 0, bitmap.Width, bitmap.Height), ImageLockMode.WriteOnly, PixelFormat.Format24bppRgb);
+            for (int y = 0; y < height; y++)
+            {
+                byte* row = (byte*)bitmapData.Scan0 + bitmapData.Stride * y;
+                for (int x = 0; x < width; x++)
+                {  
+                    byte grayShade8bit = (byte)(pixels[y, x]);
+                    row[x] = grayShade8bit;
+                }
+            }
+            bitmap.UnlockBits(bitmapData);
+            return bitmap;
+        }
+
+        private int[,] GetArrayImage(Bitmap processedBitmap)
+        {
+            BitmapData bitmapData = processedBitmap.LockBits(new Rectangle(0, 0, processedBitmap.Width, processedBitmap.Height), ImageLockMode.ReadWrite, processedBitmap.PixelFormat);
+
+            int bytesPerPixel = Bitmap.GetPixelFormatSize(processedBitmap.PixelFormat) / 8;
+            int byteCount = bitmapData.Stride * processedBitmap.Height;
+            byte[] pixels = new byte[byteCount];
+            IntPtr ptrFirstPixel = bitmapData.Scan0;
+            Marshal.Copy(ptrFirstPixel, pixels, 0, pixels.Length);
+            int heightInPixels = bitmapData.Height;
+            int widthInBytes = bitmapData.Width * bytesPerPixel;
+
+            int[,] pix = new int[heightInPixels, widthInBytes];
+
+            for (int y = 0; y < heightInPixels; y++)
+            {
+                int currentLine = y * bitmapData.Stride;
+                for (int x = 0; x < widthInBytes; x++)
+                {
+                    pix[y,x] = pixels[currentLine + x];
+                }
+            }
+            processedBitmap.UnlockBits(bitmapData);
+            return pix;
+        }
+
         public void GrayScale_Parallel(Bitmap bmp)
         {
             unsafe
@@ -235,7 +282,7 @@ namespace ImageProcessing
 
         public void HPF_Parallel(Bitmap bmp, int[][] setHPF)
         {
-            
+
             unsafe
             {
                 BitmapData bitmapData = bmp.LockBits(new Rectangle(0, 0, bmp.Width, bmp.Height), ImageLockMode.ReadWrite, bmp.PixelFormat);
@@ -244,54 +291,52 @@ namespace ImageProcessing
                 int widthInBytes = bitmapData.Width * bytesPerPixel;
                 byte* ptrFirstPixel = (byte*)bitmapData.Scan0;
 
-                var set = setHPF;
-
+                var set = setHPF; 
                 int n = set.Length / 2;
 
-                Parallel.For(0, heightInPixels - 1, h =>
+                for(int h = 0; h < heightInPixels; h++) 
                 {
-                      byte* currentLine = ptrFirstPixel + (h * bitmapData.Stride);
+                    byte* currentLine = ptrFirstPixel + (h * bitmapData.Stride);
 
-                      for (int w = 0; w < widthInBytes; w = w + bytesPerPixel)
-                      {
-                          int pixel = 0;
-                          int sety = 0;
+                    for (int w = 0; w < widthInBytes; w = w + bytesPerPixel)
+                    {
+                        int pixel = 0;
+                        int sety = 0;
 
-                          for (int y = -n; y <= n; y++)
-                          {
-                              int setx = 0;
-                              for (int x = -n * bytesPerPixel; x <= n * bytesPerPixel; x = x + bytesPerPixel)
-                              {
-                                  if ((h + y >= 0 && h + y < heightInPixels) && (w + x >= 0 && w + x < widthInBytes))
-                                  {
-                                      if (set[sety][setx] != 0)
-                                      {
-                                          byte* getLine = ptrFirstPixel + ((h + y) * bitmapData.Stride);
-                                          pixel += getLine[w + x] * set[sety][setx];
+                        for (int y = -n; y <= n; y++)
+                        {
+                            int setx = 0;
+                            for (int x = -n * bytesPerPixel; x <= n * bytesPerPixel; x = x + bytesPerPixel)
+                            {
+                                if ((h + y >= 0 && h + y < heightInPixels) && (w + x >= 0 && w + x < widthInBytes))
+                                {
+                                    if (set[sety][setx] != 0)
+                                    {
+                                        byte* getLine = ptrFirstPixel + ((h + y) * bitmapData.Stride);
+                                        pixel += getLine[w + x] * set[sety][setx];
                                         //Console.WriteLine($"height:{h + y} width{w + x}");
                                     }
-                                  }
-                                  setx++;
-                              }
-                              sety++;
-                          }
-                          var a = pixel / 9;
-                          if (a < 0)
-                          {
-                              a = 0;
-                          }
-                          else if (a > 255)
-                          {
-                              a = 255;
-                          }
+                                }
+                                setx++;
+                            }
+                            sety++;
+                        }
+                        var a = pixel / 9;
+                        if (a < 0)
+                        {
+                            a = 0;
+                        }
+                        else if (a > 255)
+                        {
+                            a = 255;
+                        }
                         //Console.WriteLine($"hasil : {a}");
                         currentLine[w] = (byte)a;
-                          currentLine[w + 1] = (byte)a;
-                          currentLine[w + 2] = (byte)a;
-                      }
-                      HPF.ReportProgress(1);
-
-                  });
+                        currentLine[w + 1] = (byte)a;
+                        currentLine[w + 2] = (byte)a;
+                    }
+                    HPF.ReportProgress(1);
+                }
                 bmp.UnlockBits(bitmapData);
             }
         }
@@ -358,8 +403,7 @@ namespace ImageProcessing
 
         public Form1()
         {
-            InitializeComponent();
-
+            InitializeComponent(); 
         }
 
         public Form1(string message)
@@ -427,7 +471,10 @@ namespace ImageProcessing
                 toGrayscaleBW.RunWorkerAsync(argument: bmp);
                 bmpHPF = null;
                 bmpLPF = null;
-                bmpMedian = null;   
+                bmpMedian = null;
+                Console.WriteLine(bmpAwal.PixelFormat);
+                //int[,] test = GetArrayImage(bmpAwal);
+                //ImageBox.Image = BitmapFromArray(test, test.GetLength(1) , test.GetLength(0));
             }
             button4_MouseDown(button4, new MouseEventArgs(MouseButtons.Left, 1, 0, 0, 0));
             button4.PerformClick();
@@ -493,7 +540,7 @@ namespace ImageProcessing
             else if (e.Error != null) MessageBox.Show(e.Error.Message);
             else 
             progressBar1.Visible = false;
-            ImageBox.Image = e.Result as Bitmap; 
+            ImageBox.Image = bmpHPF; 
         }
 
         private void button4_Click(object sender, EventArgs e)
@@ -530,9 +577,7 @@ namespace ImageProcessing
 
             e.Result = bmp;
             sw.Stop();
-            Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine($"Low Passing Filter Processed in {sw.ElapsedMilliseconds} ms");
-            Console.ResetColor();
+            Console.WriteLine($"Low Passing Filter Processed in {sw.ElapsedMilliseconds} ms"); 
         }
 
         private void LPF_ProgressChanged(object sender, ProgressChangedEventArgs e)

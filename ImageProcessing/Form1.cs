@@ -13,7 +13,7 @@ using System.Windows.Forms;
 
 namespace ImageProcessing
 {
-    
+
     public partial class Form1 : Form
     {
 
@@ -30,8 +30,9 @@ namespace ImageProcessing
         private Bitmap bmpMedian;
         private int bmpW;
         private int bmpH;
+        Stopwatch sw = new Stopwatch();
 
-        private string msg; 
+        private string msg;
 
         private int[][] HPFSet = new int[][] { new int[] { -1,-1,-1 },
                                                new int[] { -1,8,-1 },
@@ -43,103 +44,105 @@ namespace ImageProcessing
 
         private int MedianLenght = 3;
 
+        #region Alternatives Method
 
-        public int LPFGetPixel(int[][] set, Bitmap bmp, int h, int w)
-        {
-            int total = set.Sum(arr => arr.Sum());
-            int n = set.Length/2;
-            int pixel = 0;
-            int sety = 0;
-            for (int y = -n; y<=n; y++)
-            {
-                int setx = 0;
-                for (int x = -n; x <=n; x++)
-                {   
-                     if( (h+y >= 0 && h + y <= bmp.Height - 1) && (w+x >= 0 && w + x <= bmp.Width - 1))
-                    {
-                        if (set[sety][setx] != 0)
-                        {
-                            pixel += bmp.GetPixel(w + x, h + y).R * set[sety][setx];
-                        }  
-                    }
-                    setx++;
-                }
-                sety++;
-            }
-            var a = pixel / total;
-            if (a < 0)
-            {
-                a = 0;
-            }
-            else if (a>255)
-            {
-                a = 255;
-            }
+        //public int LPFGetPixel(int[][] set, Bitmap bmp, int h, int w)
+        //{
+        //    int total = set.Sum(arr => arr.Sum());
+        //    int n = set.Length / 2;
+        //    int pixel = 0;
+        //    int sety = 0;
+        //    for (int y = -n; y <= n; y++)
+        //    {
+        //        int setx = 0;
+        //        for (int x = -n; x <= n; x++)
+        //        {
+        //            if ((h + y >= 0 && h + y <= bmp.Height - 1) && (w + x >= 0 && w + x <= bmp.Width - 1))
+        //            {
+        //                if (set[sety][setx] != 0)
+        //                {
+        //                    pixel += bmp.GetPixel(w + x, h + y).R * set[sety][setx];
+        //                }
+        //            }
+        //            setx++;
+        //        }
+        //        sety++;
+        //    }
+        //    var a = pixel / total;
+        //    if (a < 0)
+        //    {
+        //        a = 0;
+        //    }
+        //    else if (a > 255)
+        //    {
+        //        a = 255;
+        //    }
 
-            return a ;
+        //    return a;
 
-        }
+        //}
 
-        public int HPFGetPixel(int[][] set, Bitmap bmp, int h, int w)
-        {
-            int total = 9;
-            int n = set.Length / 2;
-            int pixel = 0;
-            int sety = 0;
-            for (int y = -n; y <= n; y++)
-            {
-                int setx = 0;
-                for (int x = -n; x <= n; x++)
-                {
-                    if ((h + y >= 0 && h + y <= bmp.Height - 1) && (w + x >= 0 && w + x <= bmp.Width - 1))
-                    {
-                        if (set[sety][setx] != 0)
-                        {
-                            pixel += bmp.GetPixel(w + x, h + y).R * set[sety][setx];
-                        }
-                    }
-                    setx++;
-                }
-                sety++;
-            }
-            var a = pixel / total;
-            if (a < 0)
-            {
-                a = 0;
-            }
-            else if (a > 255)
-            {
-                a = 255;
-            }
+        //public int HPFGetPixel(int[][] set, Bitmap bmp, int h, int w)
+        //{
+        //    int total = 9;
+        //    int n = set.Length / 2;
+        //    int pixel = 0;
+        //    int sety = 0;
+        //    for (int y = -n; y <= n; y++)
+        //    {
+        //        int setx = 0;
+        //        for (int x = -n; x <= n; x++)
+        //        {
+        //            if ((h + y >= 0 && h + y <= bmp.Height - 1) && (w + x >= 0 && w + x <= bmp.Width - 1))
+        //            {
+        //                if (set[sety][setx] != 0)
+        //                {
+        //                    pixel += bmp.GetPixel(w + x, h + y).R * set[sety][setx];
+        //                }
+        //            }
+        //            setx++;
+        //        }
+        //        sety++;
+        //    }
+        //    var a = pixel / total;
+        //    if (a < 0)
+        //    {
+        //        a = 0;
+        //    }
+        //    else if (a > 255)
+        //    {
+        //        a = 255;
+        //    }
 
-            return a;
+        //    return a;
 
-        }
+        //}
 
-        public int MedianGetPixel(Bitmap bmp, int h, int w, int nMatrix)
-        {
-            int n = nMatrix / 2;
-            List<int> pixel = new List<int>();
+        //public int MedianGetPixel(Bitmap bmp, int h, int w, int nMatrix)
+        //{
+        //    int n = nMatrix / 2;
+        //    List<int> pixel = new List<int>();
 
-            for (int y = -n; y <= n; y++)
-            {
-                for (int x = -n; x <= n; x++)
-                {
-                    if ((h + y >= 0 && h + y <= bmp.Height - 1) && (w + x >= 0 && w + x <= bmp.Width - 1))
-                    {
-                        pixel.Add(bmp.GetPixel(w + x, h + y).R);
-                    }
-                }
-            }
-            pixel = pixel.OrderBy(x => x).ToList();
-            return pixel[(pixel.Count()) / 2];
-        }
+        //    for (int y = -n; y <= n; y++)
+        //    {
+        //        for (int x = -n; x <= n; x++)
+        //        {
+        //            if ((h + y >= 0 && h + y <= bmp.Height - 1) && (w + x >= 0 && w + x <= bmp.Width - 1))
+        //            {
+        //                pixel.Add(bmp.GetPixel(w + x, h + y).R);
+        //            }
+        //        }
+        //    }
+        //    pixel = pixel.OrderBy(x => x).ToList();
+        //    return pixel[(pixel.Count()) / 2];
+        //}
 
+        #endregion
 
         public void GrayScale_Parallel(Bitmap bmp)
-        {   
+        {
             unsafe
-            {  
+            {
                 BitmapData bitmapData = bmp.LockBits(new Rectangle(0, 0, bmp.Width, bmp.Height), ImageLockMode.ReadWrite, bmp.PixelFormat);
                 int bytesPerPixel = Image.GetPixelFormatSize(bmp.PixelFormat) / 8;
                 int heightInPixels = bitmapData.Height;
@@ -156,7 +159,7 @@ namespace ImageProcessing
                         int G = currentLine[x + 1];
                         int R = currentLine[x + 2];
 
-                        int avg = (R + B + G) / 3; 
+                        int avg = (R + B + G) / 3;
 
                         currentLine[x] = (byte)avg;
                         currentLine[x + 1] = (byte)avg;
@@ -166,10 +169,10 @@ namespace ImageProcessing
                 });
                 bmp.UnlockBits(bitmapData);
             }
-        } 
+        }
 
         public void LPF_Parallel(Bitmap bmp, int[][] setLPF)
-        {    
+        {
             unsafe
             {
                 BitmapData bitmapData = bmp.LockBits(new Rectangle(0, 0, bmp.Width, bmp.Height), ImageLockMode.ReadWrite, bmp.PixelFormat);
@@ -230,7 +233,7 @@ namespace ImageProcessing
             }
         }
 
-        public void HPF_Parallel(Bitmap bmp, int[][] set)
+        public void HPF_Parallel(Bitmap bmp, int[][] setHPF)
         {
             
             unsafe
@@ -239,7 +242,9 @@ namespace ImageProcessing
                 int bytesPerPixel = Image.GetPixelFormatSize(bmp.PixelFormat) / 8;
                 int heightInPixels = bitmapData.Height;
                 int widthInBytes = bitmapData.Width * bytesPerPixel;
-                byte* ptrFirstPixel = (byte*)bitmapData.Scan0; 
+                byte* ptrFirstPixel = (byte*)bitmapData.Scan0;
+
+                var set = setHPF;
 
                 int n = set.Length / 2;
 
@@ -422,8 +427,10 @@ namespace ImageProcessing
                 toGrayscaleBW.RunWorkerAsync(argument: bmp);
                 bmpHPF = null;
                 bmpLPF = null;
-                bmpMedian = null;
+                bmpMedian = null;   
             }
+            button4_MouseDown(button4, new MouseEventArgs(MouseButtons.Left, 1, 0, 0, 0));
+            button4.PerformClick();
 
         }
 
@@ -451,10 +458,7 @@ namespace ImageProcessing
 
         private void HPF_DoWork(object sender, DoWorkEventArgs e)
         {
-            if (HPF.IsBusy)
-            {
-                HPF.CancelAsync();
-            }
+            sw.Restart(); 
             var bmp = e.Argument as Bitmap;
 
             HPF_Parallel(bmp, HPFSet);
@@ -474,6 +478,8 @@ namespace ImageProcessing
             #endregion
 
             e.Result = bmp;
+            sw.Stop();
+            Console.WriteLine($"HPF : {sw.ElapsedMilliseconds} ms");
         }
 
         private void HPF_ProgressChanged(object sender, ProgressChangedEventArgs e)
@@ -500,10 +506,8 @@ namespace ImageProcessing
             //if (LPF.IsBusy)
             //{
             //    LPF.CancelAsync();
-            //}
-
-            Stopwatch sw = new Stopwatch();
-            sw.Start();
+            //} 
+            sw.Restart();
 
             var bmp = e.Argument as Bitmap;
 
@@ -615,9 +619,8 @@ namespace ImageProcessing
         }
 
         private void Median_DoWork(object sender, DoWorkEventArgs e)
-        {
-            Stopwatch sw = new Stopwatch();
-            sw.Start();
+        {    
+            sw.Restart();
             if (Median.IsBusy)
             {
                 Median.CancelAsync();

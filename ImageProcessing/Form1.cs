@@ -1,12 +1,15 @@
-﻿using System;
+﻿using ProtoBuf;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -42,8 +45,6 @@ namespace ImageProcessing
         private int[][] LPFSet = new int[][] { new int[] { 1,1,1 },
                                                new int[] { 1,1,1 },
                                                new int[] { 1,1,1 }};
-
-        private int[,] arrayImage = new int[,] { { 0,0,0,0,0,0,0,0,0,0,0,0 }, { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } };
 
         private int MedianLenght = 3;
 
@@ -142,6 +143,8 @@ namespace ImageProcessing
 
         #endregion
 
+
+
         private unsafe Bitmap BitmapFromArray(Int32[,] pixels, int width, int height)
         {
             
@@ -185,6 +188,8 @@ namespace ImageProcessing
             processedBitmap.UnlockBits(bitmapData);
             return pix;
         }
+
+
 
         public void GrayScale_Parallel(Bitmap bmp)
         {
@@ -471,10 +476,7 @@ namespace ImageProcessing
                 toGrayscaleBW.RunWorkerAsync(argument: bmp);
                 bmpHPF = null;
                 bmpLPF = null;
-                bmpMedian = null;
-                Console.WriteLine(bmpAwal.PixelFormat);
-                //int[,] test = GetArrayImage(bmpAwal);
-                //ImageBox.Image = BitmapFromArray(test, test.GetLength(1) , test.GetLength(0));
+                bmpMedian = null; 
             }
             button4_MouseDown(button4, new MouseEventArgs(MouseButtons.Left, 1, 0, 0, 0));
             button4.PerformClick();
@@ -549,11 +551,7 @@ namespace ImageProcessing
         }
 
         private void LPF_DoWork(object sender, DoWorkEventArgs e)
-        {
-            //if (LPF.IsBusy)
-            //{
-            //    LPF.CancelAsync();
-            //} 
+        {   
             sw.Restart();
 
             var bmp = e.Argument as Bitmap;

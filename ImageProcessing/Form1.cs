@@ -35,16 +35,17 @@ namespace ImageProcessing
         private int bmpW;
         private int bmpH;
         Stopwatch sw = new Stopwatch();
+        private int _processorCount = Environment.ProcessorCount/4;
 
         private string msg;
 
-        private int[][] HPFSet = new int[][] { new int[] { -1,-1,-1 },
-                                               new int[] { -1,8,-1 },
-                                               new int[] { -1,-1,-1 }};
+        private int[][] HPFSet = new int[][] { new int[] { 0,-1,0 },
+                                               new int[] { -1,4,-1 },
+                                               new int[] { 0,-1,0 }};
 
-        private int[][] LPFSet = new int[][] { new int[] { 1,1,1 },
-                                               new int[] { 1,1,1 },
-                                               new int[] { 1,1,1 }};
+        private int[][] LPFSet = new int[][] { new int[] { 1,0,1 },
+                                               new int[] { 0,1,0 },
+                                               new int[] { 1,0,1 }};
 
         private int MedianLenght = 3;
 
@@ -143,7 +144,121 @@ namespace ImageProcessing
 
         #endregion
 
+        #region API
+        [System.Runtime.InteropServices.DllImport("gdi32.dll")]
+        public static extern bool DeleteObject(IntPtr hObject);
 
+        [System.Runtime.InteropServices.DllImport("user32.dll")]
+        public static extern IntPtr GetDC(IntPtr hwnd);
+
+        [System.Runtime.InteropServices.DllImport("gdi32.dll")]
+        public static extern IntPtr CreateCompatibleDC(IntPtr hdc);
+
+        [System.Runtime.InteropServices.DllImport("user32.dll")]
+        public static extern int ReleaseDC(IntPtr hwnd, IntPtr hdc);
+
+        [System.Runtime.InteropServices.DllImport("gdi32.dll")]
+        public static extern int DeleteDC(IntPtr hdc);
+
+        [System.Runtime.InteropServices.DllImport("gdi32.dll")]
+        public static extern IntPtr SelectObject(IntPtr hdc, IntPtr hgdiobj);
+
+        [System.Runtime.InteropServices.DllImport("gdi32.dll")]
+        public static extern int BitBlt(IntPtr hdcDst, int xDst, int yDst, int w, int h, IntPtr hdcSrc, int xSrc, int ySrc, int rop);
+        static int SRCCOPY = 0x00CC0020;
+
+        [System.Runtime.InteropServices.DllImport("gdi32.dll")]
+        static extern IntPtr CreateDIBSection(IntPtr hdc, ref BITMAPINFO bmi, uint Usage, out IntPtr bits, IntPtr hSection, uint dwOffset);
+        static uint BI_RGB = 0;
+        static uint DIB_RGB_COLORS = 0;
+        [System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential)]
+        public struct BITMAPINFO
+        {
+            public uint biSize;
+            public int biWidth, biHeight;
+            public short biPlanes, biBitCount;
+            public uint biCompression, biSizeImage;
+            public int biXPelsPerMeter, biYPelsPerMeter;
+            public uint biClrUsed, biClrImportant;
+            [System.Runtime.InteropServices.MarshalAs(System.Runtime.InteropServices.UnmanagedType.ByValArray, SizeConst = 256)]
+            public uint[] cols;
+        }
+        static uint MAKERGB(int r,int g,int b)
+        { 
+            return ((uint)(b&255)) | ((uint)((r&255)<<8)) | ((uint)((g&255)<<16));
+        }
+        #endregion 
+
+        static Bitmap CopyToBpp(System.Drawing.Bitmap b, int bpp)
+        { 
+         if (bpp!=1 && bpp!=8) throw new System.ArgumentException("1 or 8","bpp");
+
+          // Plan: built into Windows GDI is the ability to convert
+          // bitmaps from one format to another. Most of the time, this
+          // job is actually done by the graphics hardware accelerator card
+          // and so is extremely fast. The rest of the time, the job is done by
+          // very fast native code.
+          // We will call into this GDI functionality from C#. Our plan:
+          // (1) Convert our Bitmap into a GDI hbitmap (ie. copy unmanaged->managed)
+          // (2) Create a GDI monochrome hbitmap
+          // (3) Use GDI "BitBlt" function to copy from hbitmap into monochrome (as above)
+          // (4) Convert the monochrone hbitmap into a Bitmap (ie. copy unmanaged->managed)
+
+          int w=b.Width, h=b.Height;
+          IntPtr hbm = b.GetHbitmap(); // this is step (1)
+          //
+          // Step (2): create the monochrome bitmap.
+          // "BITMAPINFO" is an interop-struct which we define below.
+          // In GDI terms, it's a BITMAPHEADERINFO followed by an array of two RGBQUADs
+          BITMAPINFO bmi = new BITMAPINFO();
+          bmi.biSize=40;  // the size of the BITMAPHEADERINFO struct
+          bmi.biWidth=w;
+          bmi.biHeight=h;
+          bmi.biPlanes=1; // "planes" are confusing. We always use just 1. Read MSDN for more info.
+          bmi.biBitCount=(short)bpp; // ie. 1bpp or 8bpp
+          bmi.biCompression=BI_RGB; // ie. the pixels in our RGBQUAD table are stored as RGBs, not palette indexes
+          bmi.biSizeImage = (uint)(((w+7)&0xFFFFFFF8)*h/8);
+          bmi.biXPelsPerMeter=1000000; // not really important
+          bmi.biYPelsPerMeter=1000000; // not really important
+          // Now for the colour table.
+          uint ncols = (uint)1<<bpp; // 2 colours for 1bpp; 256 colours for 8bpp
+          bmi.biClrUsed=ncols;
+          bmi.biClrImportant=ncols;
+          bmi.cols=new uint[256]; // The structure always has fixed size 256, even if we end up using fewer colours
+          if (bpp==1) {bmi.cols[0]=MAKERGB(0,0,0); bmi.cols[1]=MAKERGB(255,255,255);}
+          else {for (int i=0; i<ncols; i++) bmi.cols[i]=MAKERGB(i,i,i);}
+          // For 8bpp we've created an palette with just greyscale colours.
+          // You can set up any palette you want here. Here are some possibilities:
+          // greyscale: for (int i=0; i<256; i++) bmi.cols[i]=MAKERGB(i,i,i);
+          // rainbow: bmi.biClrUsed=216; bmi.biClrImportant=216; int[] colv=new int[6]{0,51,102,153,204,255};
+          //          for (int i=0; i<216; i++) bmi.cols[i]=MAKERGB(colv[i/36],colv[(i/6)%6],colv[i%6]);
+          // optimal: a difficult topic: http://en.wikipedia.org/wiki/Color_quantization
+          // 
+          // Now create the indexed bitmap "hbm0"
+          IntPtr bits0; // not used for our purposes. It returns a pointer to the raw bits that make up the bitmap.
+          IntPtr hbm0 = CreateDIBSection(IntPtr.Zero,ref bmi,DIB_RGB_COLORS,out bits0,IntPtr.Zero,0);
+          //
+          // Step (3): use GDI's BitBlt function to copy from original hbitmap into monocrhome bitmap
+          // GDI programming is kind of confusing... nb. The GDI equivalent of "Graphics" is called a "DC".
+          IntPtr sdc = GetDC(IntPtr.Zero);       // First we obtain the DC for the screen
+           // Next, create a DC for the original hbitmap
+          IntPtr hdc = CreateCompatibleDC(sdc); SelectObject(hdc,hbm); 
+          // and create a DC for the monochrome hbitmap
+          IntPtr hdc0 = CreateCompatibleDC(sdc); SelectObject(hdc0,hbm0);
+          // Now we can do the BitBlt:
+          BitBlt(hdc0,0,0,w,h,hdc,0,0,SRCCOPY);
+          // Step (4): convert this monochrome hbitmap back into a Bitmap:
+          System.Drawing.Bitmap b0 = System.Drawing.Bitmap.FromHbitmap(hbm0);
+          //
+          // Finally some cleanup.
+          DeleteDC(hdc);
+          DeleteDC(hdc0);
+          ReleaseDC(IntPtr.Zero,sdc);
+          DeleteObject(hbm);
+          DeleteObject(hbm0);
+          //
+          return b0;
+        }
 
         private unsafe Bitmap BitmapFromArray(Int32[,] pixels, int width, int height)
         {
@@ -163,33 +278,35 @@ namespace ImageProcessing
             return bitmap;
         }
 
-        private int[,] GetArrayImage(Bitmap processedBitmap)
+        private int[][] GetArrayImage(Bitmap processedBitmap)
         {
             BitmapData bitmapData = processedBitmap.LockBits(new Rectangle(0, 0, processedBitmap.Width, processedBitmap.Height), ImageLockMode.ReadWrite, processedBitmap.PixelFormat);
 
             int bytesPerPixel = Bitmap.GetPixelFormatSize(processedBitmap.PixelFormat) / 8;
-            int byteCount = bitmapData.Stride * processedBitmap.Height;
+            long byteCount = bitmapData.Stride * processedBitmap.Height;
             byte[] pixels = new byte[byteCount];
             IntPtr ptrFirstPixel = bitmapData.Scan0;
             Marshal.Copy(ptrFirstPixel, pixels, 0, pixels.Length);
             int heightInPixels = bitmapData.Height;
             int widthInBytes = bitmapData.Width * bytesPerPixel;
 
-            int[,] pix = new int[heightInPixels, widthInBytes];
+            Console.WriteLine($"width : {processedBitmap.Width} widinByte : {widthInBytes} bitmapDataWidth: {bitmapData.Width}");
+
+            int[][] pix = new int[heightInPixels][];
 
             for (int y = 0; y < heightInPixels; y++)
             {
                 int currentLine = y * bitmapData.Stride;
+                int[] linearray = new int[widthInBytes];
                 for (int x = 0; x < widthInBytes; x++)
                 {
-                    pix[y,x] = pixels[currentLine + x];
+                    linearray[x] = (int)pixels[currentLine + x];
                 }
+                pix[y] = linearray;
             }
             processedBitmap.UnlockBits(bitmapData);
             return pix;
-        }
-
-
+        } 
 
         public void GrayScale_Parallel(Bitmap bmp)
         {
@@ -226,7 +343,7 @@ namespace ImageProcessing
         public void LPF_Parallel(Bitmap bmp, int[][] setLPF)
         {
             unsafe
-            {
+            {   
                 BitmapData bitmapData = bmp.LockBits(new Rectangle(0, 0, bmp.Width, bmp.Height), ImageLockMode.ReadWrite, bmp.PixelFormat);
                 int bytesPerPixel = Image.GetPixelFormatSize(bmp.PixelFormat) / 8;
                 int heightInPixels = bitmapData.Height;
@@ -286,10 +403,9 @@ namespace ImageProcessing
         }
 
         public void HPF_Parallel(Bitmap bmp, int[][] setHPF)
-        {
-
+        {    
             unsafe
-            {
+            {    
                 BitmapData bitmapData = bmp.LockBits(new Rectangle(0, 0, bmp.Width, bmp.Height), ImageLockMode.ReadWrite, bmp.PixelFormat);
                 int bytesPerPixel = Image.GetPixelFormatSize(bmp.PixelFormat) / 8;
                 int heightInPixels = bitmapData.Height;
@@ -319,14 +435,13 @@ namespace ImageProcessing
                                     {
                                         byte* getLine = ptrFirstPixel + ((h + y) * bitmapData.Stride);
                                         pixel += getLine[w + x] * set[sety][setx];
-                                        //Console.WriteLine($"height:{h + y} width{w + x}");
                                     }
                                 }
                                 setx++;
                             }
                             sety++;
                         }
-                        var a = pixel / 9;
+                        var a = pixel/6;
                         if (a < 0)
                         {
                             a = 0;
@@ -334,14 +449,96 @@ namespace ImageProcessing
                         else if (a > 255)
                         {
                             a = 255;
-                        }
-                        //Console.WriteLine($"hasil : {a}");
+                        } 
+                        Console.Write(a+" ");
                         currentLine[w] = (byte)a;
                         currentLine[w + 1] = (byte)a;
                         currentLine[w + 2] = (byte)a;
                     }
                     HPF.ReportProgress(1);
                 }
+                bmp.UnlockBits(bitmapData);
+            }
+        }
+
+        public void HPF_Parallel2(Bitmap bmp, int[][] setHPF)
+        {
+
+            unsafe
+            {
+                BitmapData bitmapData = bmp.LockBits(new Rectangle(0, 0, bmp.Width, bmp.Height), ImageLockMode.ReadWrite, bmp.PixelFormat);
+                int bytesPerPixel = Image.GetPixelFormatSize(bmp.PixelFormat) / 8;
+                int heightInPixels = bitmapData.Height;
+                int widthInBytes = bitmapData.Width * bytesPerPixel;
+                byte* ptrFirstPixel = (byte*)bitmapData.Scan0;
+
+                var set = setHPF; 
+                int n = set.Length / 2;
+
+
+                var tasks = new Task[_processorCount];
+
+                for (int taskNum = 0; taskNum < _processorCount; taskNum++)
+                {
+                    int taskNumCopy = taskNum;
+
+                    tasks[taskNum] = Task.Factory.StartNew(
+                        () =>
+                        {
+                            var max = heightInPixels / _processorCount * (taskNumCopy+1);
+                            var sisa = heightInPixels % _processorCount;
+                            if (taskNumCopy == _processorCount - 1)
+                            {
+                               max += sisa;
+                            }
+                            
+                            Console.WriteLine($"awal:{heightInPixels*taskNumCopy/_processorCount} max:{max-1}");
+
+                            for(int h = heightInPixels*taskNumCopy/_processorCount; h < max; h++) 
+                            {
+                                byte* currentLine = ptrFirstPixel + (h * bitmapData.Stride);
+
+                                for (int w = 0; w < widthInBytes; w = w + bytesPerPixel)
+                                {
+                                    int pixel = 0;
+                                    int sety = 0;
+
+                                    for (int y = -n; y <= n; y++)
+                                    {
+                                        int setx = 0;
+                                        for (int x = -n * bytesPerPixel; x <= n * bytesPerPixel; x = x + bytesPerPixel)
+                                        {
+                                            if ((h + y >= 0 && h + y < heightInPixels) && (w + x >= 0 && w + x < widthInBytes))
+                                            {
+                                                if (set[sety][setx] != 0)
+                                                {
+                                                    byte* getLine = ptrFirstPixel + ((h + y) * bitmapData.Stride);
+                                                    pixel += getLine[w + x] * set[sety][setx];
+                                                }
+                                            }
+                                            setx++;
+                                        }
+                                        sety++;
+                                    }
+                                    var a = pixel / 9;
+                                    if (a < 0)
+                                    {
+                                        a = 0;
+                                    }
+                                    else if (a > 255)
+                                    {
+                                        a = 255;
+                                    }
+                                    currentLine[w] = (byte)a;
+                                    currentLine[w + 1] = (byte)a;
+                                    currentLine[w + 2] = (byte)a;
+                                }
+                                HPF.ReportProgress(1);
+                            } 
+                        });
+                }
+
+                Task.WaitAll(tasks); 
                 bmp.UnlockBits(bitmapData);
             }
         }
@@ -423,25 +620,11 @@ namespace ImageProcessing
             sw.Start();
             var bmp = e.Argument as Bitmap;
 
-            GrayScale_Parallel(bmp);
-
-            //for (int i = 0; i < bmp.Height; i++)
-            //{   
-            //    var w = 0;
-            //    for (int j = 0; j < bmp.Width; j++)
-            //    {
-            //        w++;
-            //        var Average = (bmp.GetPixel(j, i).R + bmp.GetPixel(j, i).G + bmp.GetPixel(j, i).B) / 3;
-            //        bmp.SetPixel(j, i, Color.FromArgb(Average, Average, Average));
-            //    }
-            //    toGrayscaleBW.ReportProgress(i);
-            //}
+            GrayScale_Parallel(bmp); 
 
             e.Result = bmp;
             sw.Stop();
-            Console.ForegroundColor = ConsoleColor.Green;
             Console.WriteLine($"Grayscale processes in {sw.ElapsedMilliseconds} ms");
-            Console.ResetColor();
         }
 
         private void toGrayscaleBW_ProgressChanged(object sender, ProgressChangedEventArgs e)
@@ -454,6 +637,35 @@ namespace ImageProcessing
             progressBar1.Visible = false;
             ImageBox.Image = e.Result as Bitmap;
             bmpAwal = e.Result as Bitmap;
+
+            Bitmap test = CopyToBpp(bmpAwal, 8);
+
+            var array = GetArrayImage(bmpAwal);
+
+            StringBuilder sb = new StringBuilder();
+
+            for(int i = 0; i<array.Length; i++)
+            {
+                sb.Append(string.Join("'",array[i]));
+                sb.Append(Environment.NewLine);
+            }
+            File.WriteAllText(@"D:\aaaaa.txt",sb.ToString());
+
+            ImageBox.Image = test;
+
+            Console.WriteLine(test.PixelFormat);
+
+            using (MemoryStream ms = new MemoryStream())
+            {
+                bmpAwal.Save(ms,ImageFormat.Bmp);
+                bmpSize.Text = ms.Length.ToString();
+            }
+
+            using (MemoryStream ms = new MemoryStream())
+            {  
+                bmpAwal.Save(ms,ImageFormat.Jpeg);
+                jpegSize.Text = ms.Length.ToString();
+            } 
         }
 
         private void sAVEToolStripMenuItem_Click(object sender, EventArgs e)
@@ -490,11 +702,11 @@ namespace ImageProcessing
                 {
                     ShowProgressBar(bmpAwal.Height);
                     bmpHPF = new Bitmap(bmpAwal);
-                    HPF.RunWorkerAsync(argument: bmpHPF);
+                    HPF.RunWorkerAsync();
                 }
                 else
-                {
-                    ImageBox.Image = bmpHPF;
+                {   
+                   ImageBox.Image = bmpHPF;
                 }
 
             }
@@ -507,26 +719,9 @@ namespace ImageProcessing
 
         private void HPF_DoWork(object sender, DoWorkEventArgs e)
         {
-            sw.Restart(); 
-            var bmp = e.Argument as Bitmap;
-
-            HPF_Parallel(bmp, HPFSet);
-
-            #region Alternatives
-            //
-            //for (int h = 0; h < bmp.Height; h++) { 
-            //    for (int w = 0; w < bmp.Width; w++)
-            //    {  
-            //        int pixel = HPFGetPixel(HPFSet,bmp,h,w);
-
-            //        bmp.SetPixel(w, h, Color.FromArgb(pixel, pixel, pixel));
-            //    }
-
-            //    HPF.ReportProgress(h);
-            //} 
-            #endregion
-
-            e.Result = bmp;
+            
+            sw.Restart();
+            HPF_Parallel(bmpHPF, HPFSet);
             sw.Stop();
             Console.WriteLine($"HPF : {sw.ElapsedMilliseconds} ms");
         }
@@ -542,7 +737,9 @@ namespace ImageProcessing
             else if (e.Error != null) MessageBox.Show(e.Error.Message);
             else 
             progressBar1.Visible = false;
-            ImageBox.Image = bmpHPF; 
+            ImageBox.Image = bmpHPF;
+            ImageBox.Invalidate();
+            ImageBox.Refresh();
         }
 
         private void button4_Click(object sender, EventArgs e)
@@ -552,28 +749,8 @@ namespace ImageProcessing
 
         private void LPF_DoWork(object sender, DoWorkEventArgs e)
         {   
-            sw.Restart();
-
-            var bmp = e.Argument as Bitmap;
-
-            LPF_Parallel(bmp, LPFSet);
-
-            #region Sequential Version
-            //for (int h = 0; h < bmp.Height; h++)
-            //{
-            //    for (int w = 0; w < bmp.Width; w++)
-            //    {
-
-            //        int pixel = LPFGetPixel(LPFSet, bmp, h, w);
-
-            //        bmp.SetPixel(w, h, Color.FromArgb(pixel, pixel, pixel));
-            //    }
-
-            //    LPF.ReportProgress(h);
-            //} 
-            #endregion
-
-            e.Result = bmp;
+            sw.Restart(); 
+            LPF_Parallel(bmpLPF, LPFSet);
             sw.Stop();
             Console.WriteLine($"Low Passing Filter Processed in {sw.ElapsedMilliseconds} ms"); 
         }
@@ -602,7 +779,7 @@ namespace ImageProcessing
                     ShowProgressBar(bmpAwal.Height);
                     bmpLPF = new Bitmap(bmpAwal);
                    
-                    LPF.RunWorkerAsync(argument: bmpLPF);  
+                    LPF.RunWorkerAsync();  
                 }
                 else
                 {

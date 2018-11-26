@@ -34,6 +34,12 @@
             this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
             this.toGrayscaleBW = new System.ComponentModel.BackgroundWorker();
             this.panel2 = new System.Windows.Forms.Panel();
+            this.label3 = new System.Windows.Forms.Label();
+            this.jpegSize = new System.Windows.Forms.TextBox();
+            this.label2 = new System.Windows.Forms.Label();
+            this.RLESize = new System.Windows.Forms.TextBox();
+            this.label1 = new System.Windows.Forms.Label();
+            this.bmpSize = new System.Windows.Forms.TextBox();
             this.button4 = new System.Windows.Forms.Button();
             this.buttonLPF = new System.Windows.Forms.Button();
             this.buttonMedian = new System.Windows.Forms.Button();
@@ -60,7 +66,7 @@
             this.ImageBox.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.ImageBox.BackColor = System.Drawing.SystemColors.ActiveCaption;
+            this.ImageBox.BackColor = System.Drawing.Color.Black;
             this.ImageBox.Location = new System.Drawing.Point(12, 12);
             this.ImageBox.Name = "ImageBox";
             this.ImageBox.Size = new System.Drawing.Size(680, 389);
@@ -104,6 +110,12 @@
             // 
             // panel2
             // 
+            this.panel2.Controls.Add(this.label3);
+            this.panel2.Controls.Add(this.jpegSize);
+            this.panel2.Controls.Add(this.label2);
+            this.panel2.Controls.Add(this.RLESize);
+            this.panel2.Controls.Add(this.label1);
+            this.panel2.Controls.Add(this.bmpSize);
             this.panel2.Controls.Add(this.button4);
             this.panel2.Controls.Add(this.buttonLPF);
             this.panel2.Controls.Add(this.buttonMedian);
@@ -112,6 +124,54 @@
             this.panel2.Name = "panel2";
             this.panel2.Size = new System.Drawing.Size(680, 130);
             this.panel2.TabIndex = 4;
+            // 
+            // label3
+            // 
+            this.label3.AutoSize = true;
+            this.label3.Location = new System.Drawing.Point(475, 58);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(34, 13);
+            this.label3.TabIndex = 29;
+            this.label3.Text = "JPEG";
+            // 
+            // jpegSize
+            // 
+            this.jpegSize.Location = new System.Drawing.Point(516, 55);
+            this.jpegSize.Name = "jpegSize";
+            this.jpegSize.Size = new System.Drawing.Size(161, 20);
+            this.jpegSize.TabIndex = 28;
+            // 
+            // label2
+            // 
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(475, 32);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(28, 13);
+            this.label2.TabIndex = 27;
+            this.label2.Text = "RLE";
+            // 
+            // RLESize
+            // 
+            this.RLESize.Location = new System.Drawing.Point(516, 29);
+            this.RLESize.Name = "RLESize";
+            this.RLESize.Size = new System.Drawing.Size(161, 20);
+            this.RLESize.TabIndex = 26;
+            // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(475, 6);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(30, 13);
+            this.label1.TabIndex = 25;
+            this.label1.Text = "BMP";
+            // 
+            // bmpSize
+            // 
+            this.bmpSize.Location = new System.Drawing.Point(516, 3);
+            this.bmpSize.Name = "bmpSize";
+            this.bmpSize.Size = new System.Drawing.Size(161, 20);
+            this.bmpSize.TabIndex = 24;
             // 
             // button4
             // 
@@ -201,14 +261,14 @@
             // oPENToolStripMenuItem
             // 
             this.oPENToolStripMenuItem.Name = "oPENToolStripMenuItem";
-            this.oPENToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.oPENToolStripMenuItem.Size = new System.Drawing.Size(123, 22);
             this.oPENToolStripMenuItem.Text = "OPEN";
             this.oPENToolStripMenuItem.Click += new System.EventHandler(this.oPENToolStripMenuItem_Click);
             // 
             // sAVEToolStripMenuItem
             // 
             this.sAVEToolStripMenuItem.Name = "sAVEToolStripMenuItem";
-            this.sAVEToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.sAVEToolStripMenuItem.Size = new System.Drawing.Size(123, 22);
             this.sAVEToolStripMenuItem.Text = "SAVE AS..";
             this.sAVEToolStripMenuItem.Click += new System.EventHandler(this.sAVEToolStripMenuItem_Click);
             // 
@@ -283,6 +343,7 @@
             ((System.ComponentModel.ISupportInitialize)(this.ImageBox)).EndInit();
             this.panel1.ResumeLayout(false);
             this.panel2.ResumeLayout(false);
+            this.panel2.PerformLayout();
             this.menuStrip1.ResumeLayout(false);
             this.menuStrip1.PerformLayout();
             this.ResumeLayout(false);
@@ -313,6 +374,12 @@
         private System.ComponentModel.BackgroundWorker Median;
         private System.Windows.Forms.ToolStripMenuItem medianSettingToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem hPFSettingToolStripMenuItem;
+        private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.TextBox RLESize;
+        private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.TextBox bmpSize;
+        private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.TextBox jpegSize;
     }
 }
 

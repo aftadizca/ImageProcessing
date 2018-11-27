@@ -10,21 +10,21 @@ using System.Windows.Forms;
 
 namespace ImageProcessing
 {
-    public partial class HPFSetting : Form
+    public partial class HpfSetting : Form
     {   
-        public int[][] HPFSet { get; set; }
+        public int[][] HpfSet { get; set; }
 
-        public HPFSetting()
+        public HpfSetting()
         {
             InitializeComponent();
         }
 
-        public HPFSetting(int[][] HPF)
+        public HpfSetting(int[][] hpf)
         {
             StringBuilder sb = new StringBuilder();
-            foreach(var item in HPF)
+            foreach(var item in hpf)
             {
-                if(HPF.Last() == item)
+                if(hpf.Last() == item)
                 {
                     sb.Append(string.Join(",", item));
                 }
@@ -61,7 +61,7 @@ namespace ImageProcessing
                     var intArr = Array.ConvertAll(item, x => int.Parse(x)).ToList();
                     temp.Add(intArr);
 
-                    this.HPFSet = temp.Select(p => p.ToArray()).ToArray();
+                    this.HpfSet = temp.Select(p => p.ToArray()).ToArray();
                     this.DialogResult = DialogResult.OK;
                 }
             }

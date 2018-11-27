@@ -1,6 +1,6 @@
 ﻿namespace ImageProcessing
 {
-    partial class LPFSetting
+    partial class LpfSetting
     {
         /// <summary>
         /// Required designer variable.
@@ -60,7 +60,7 @@
             this.ClientSize = new System.Drawing.Size(237, 300);
             this.Controls.Add(this.textBox1);
             this.Controls.Add(this.button1);
-            this.Name = "LPFSetting";
+            this.Name = "LpfSetting";
             this.Text = "LPFSetting";
             this.Load += new System.EventHandler(this.LPFSetting_Load);
             this.ResumeLayout(false);

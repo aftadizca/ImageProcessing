@@ -10,24 +10,24 @@ using System.Windows.Forms;
 
 namespace ImageProcessing
 {
-    public partial class LPFSetting : Form
+    public partial class LpfSetting : Form
     {
 
-        public string msg { get; set; } = "Form 2";
+        public string Msg { get; set; } = "Form 2";
 
-        public int[][] LPFSet { get; set; }
+        public int[][] LpfSet { get; set; }
 
-        public LPFSetting()
+        public LpfSetting()
         {
             InitializeComponent();
         }
 
-        public LPFSetting(int[][] LPF)
+        public LpfSetting(int[][] lpf)
         {
             StringBuilder sb = new StringBuilder();
-            foreach(var item in LPF)
+            foreach(var item in lpf)
             {
-                if(LPF.Last() == item)
+                if(lpf.Last() == item)
                 {
                     sb.Append(string.Join(",", item));
                 }
@@ -64,7 +64,7 @@ namespace ImageProcessing
                     var intArr = Array.ConvertAll(item, x => int.Parse(x)).ToList();
                     temp.Add(intArr);
 
-                    this.LPFSet = temp.Select(p => p.ToArray()).ToArray();
+                    this.LpfSet = temp.Select(p => p.ToArray()).ToArray();
                     this.DialogResult = DialogResult.OK;
                 }
             }

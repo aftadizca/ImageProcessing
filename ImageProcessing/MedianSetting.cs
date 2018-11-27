@@ -19,11 +19,11 @@ namespace ImageProcessing
             InitializeComponent();
         }
 
-        public MedianSetting(int MedianLenght)
+        public MedianSetting(int medianLenght)
         {
             InitializeComponent();
 
-            textBox1.Text = MedianLenght.ToString();
+            textBox1.Text = medianLenght.ToString();
         }
 
         private void LPFSetting_Load(object sender, EventArgs e)

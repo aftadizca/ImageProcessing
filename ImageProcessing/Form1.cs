@@ -14,6 +14,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Xml.Schema;
 
 namespace ImageProcessing
 {
@@ -260,25 +261,60 @@ namespace ImageProcessing
           return b0;
         }
 
-        private unsafe Bitmap BitmapFromArray(Int32[,] pixels, int width, int height)
+        private unsafe Bitmap RLEToImage(string path)
         {
-            
-            Bitmap bitmap = new Bitmap(width/3, height, PixelFormat.Format24bppRgb);
+
+            var data = File.ReadAllText(path);
+            var dataLine = data.Split(Environment.NewLine.ToCharArray(),StringSplitOptions.RemoveEmptyEntries);
+            List<List<int>> arrayImage = new List<List<int>>();
+            Console.WriteLine(dataLine.Length);
+            foreach (var height in dataLine)
+            {
+                var y = height.Split(' ');
+                List<int> temp = new List<int>();
+                foreach (var x in y)
+                {
+                    if (x.Contains("m"))
+                    {
+                        var xx = x.Split('m');
+                        for (int i = 0; i < int.Parse(xx[0]); i++)
+                        {
+                            temp.Add(int.Parse(xx[1]));
+                        }
+
+                    }
+                    else if(x != "")
+                    {
+                        temp.Add(int.Parse(x));
+                    }  
+                                
+                }
+                arrayImage.Add(temp);
+
+            }
+
+            Bitmap bitmap = new Bitmap(arrayImage[0].Count, arrayImage.Count, PixelFormat.Format24bppRgb);
             BitmapData bitmapData = bitmap.LockBits(new Rectangle(0, 0, bitmap.Width, bitmap.Height), ImageLockMode.WriteOnly, PixelFormat.Format24bppRgb);
-            for (int y = 0; y < height; y++)
+            int bytesPerPixel = Bitmap.GetPixelFormatSize(bitmap.PixelFormat) / 8;
+            int widthInBytes = bitmapData.Width * bytesPerPixel;
+            for (int y = 0; y < bitmap.Height; y++)
             {
                 byte* row = (byte*)bitmapData.Scan0 + bitmapData.Stride * y;
-                for (int x = 0; x < width; x++)
-                {  
-                    byte grayShade8Bit = (byte)(pixels[y, x]);
-                    row[x] = grayShade8Bit;
+                int xx = 0;
+                for (int x = 0; x < widthInBytes; x+=bytesPerPixel)
+                {
+                    
+                    row[x] = (byte)arrayImage[y][xx];
+                    row[x+1] = (byte)arrayImage[y][xx];
+                    row[x+2] = (byte)arrayImage[y][xx];
+                    xx++; 
                 }
             }
             bitmap.UnlockBits(bitmapData);
             return bitmap;
         }
 
-        private void ToRLE(Bitmap processedBitmap)
+        private void ImageToRLE(Bitmap processedBitmap, string path)
         {
             BitmapData bitmapData = processedBitmap.LockBits(new Rectangle(0, 0, processedBitmap.Width, processedBitmap.Height), ImageLockMode.ReadWrite, processedBitmap.PixelFormat);
 
@@ -308,7 +344,7 @@ namespace ImageProcessing
                         count++;
                         continue;
                     }  
-                    var cstr = count > 1 ? count + "'" : "";
+                    var cstr = count > 1 ? count + "m" : "";
                     sb.Append($"{cstr}{(int) pixels[currentLine + x]} ");
                     count = 1;
                 }
@@ -316,7 +352,7 @@ namespace ImageProcessing
                 sb.Append(Environment.NewLine);
             }
             processedBitmap.UnlockBits(bitmapData);
-            File.WriteAllText(@"rleTemp.rle",sb.ToString());
+            File.WriteAllText(path,sb.ToString());
         } 
 
         public void GrayScale_Parallel(Bitmap bmp)
@@ -625,7 +661,7 @@ namespace ImageProcessing
 
         public Form1()
         {
-            InitializeComponent();
+            InitializeComponent(); 
         }
 
         public Form1(string message)
@@ -660,7 +696,7 @@ namespace ImageProcessing
 
             ImageBox.Image = _bmpAwal;
 
-            ToRLE(_bmpAwal);
+            //ImageToRLE(_bmpAwal);
             RLESize.Text = new FileInfo(@"rleTemp.rle").Length.ToString();
             bmpSize.Text = (_bmpAwal.Height * _bmpAwal.Width * Image.GetPixelFormatSize(_bmpAwal.PixelFormat)/8).ToString();
             jpegSize.Text = new FileInfo(openFileDialog1.FileName).Length.ToString();
@@ -668,7 +704,12 @@ namespace ImageProcessing
 
         private void sAVEToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            saveFileDialog1.FileName = System.IO.Path.GetFileNameWithoutExtension(openFileDialog1.FileName)+".rle";
 
+            if (saveFileDialog1.ShowDialog() == DialogResult.OK)
+            {
+                ImageToRLE(_bmpAwal,saveFileDialog1.FileName);
+            }
         }
 
         private void oPENToolStripMenuItem_Click(object sender, EventArgs e)
@@ -676,14 +717,20 @@ namespace ImageProcessing
             openFileDialog1.FileName = "";
             var result = openFileDialog1.ShowDialog();
             if (result == DialogResult.OK)
-            {   
-                _bmpAwal = new Bitmap(openFileDialog1.FileName) as Bitmap;
-                _bmpH = _bmpAwal.Height;
-                _bmpW = _bmpAwal.Width;
+            {
+                if (Path.GetExtension(openFileDialog1.FileName) == ".rle")
+                {
+                    _bmpAwal = RLEToImage(openFileDialog1.FileName);
+                }
+                else
+                {
+                    _bmpAwal = new Bitmap(openFileDialog1.FileName) as Bitmap;
+                    ShowProgressBar(_bmpAwal.Height);
+                    var bmp = _bmpAwal;
+                    toGrayscaleBW.RunWorkerAsync(argument: bmp);
+                } 
                 Console.WriteLine($"Image Resolution {_bmpAwal.Width} x {_bmpAwal.Height} ");
-                ShowProgressBar(_bmpAwal.Height);
-                var bmp = _bmpAwal;
-                toGrayscaleBW.RunWorkerAsync(argument: bmp);
+                
                 _bmpHpf = null;
                 _bmpLpf = null;
                 _bmpMedian = null; 

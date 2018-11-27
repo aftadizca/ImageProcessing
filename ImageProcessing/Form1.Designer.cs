@@ -55,6 +55,7 @@
             this.HPF = new System.ComponentModel.BackgroundWorker();
             this.LPF = new System.ComponentModel.BackgroundWorker();
             this.Median = new System.ComponentModel.BackgroundWorker();
+            this.saveFileDialog1 = new System.Windows.Forms.SaveFileDialog();
             ((System.ComponentModel.ISupportInitialize)(this.ImageBox)).BeginInit();
             this.panel1.SuspendLayout();
             this.panel2.SuspendLayout();
@@ -261,15 +262,15 @@
             // oPENToolStripMenuItem
             // 
             this.oPENToolStripMenuItem.Name = "oPENToolStripMenuItem";
-            this.oPENToolStripMenuItem.Size = new System.Drawing.Size(123, 22);
+            this.oPENToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.oPENToolStripMenuItem.Text = "OPEN";
             this.oPENToolStripMenuItem.Click += new System.EventHandler(this.oPENToolStripMenuItem_Click);
             // 
             // sAVEToolStripMenuItem
             // 
             this.sAVEToolStripMenuItem.Name = "sAVEToolStripMenuItem";
-            this.sAVEToolStripMenuItem.Size = new System.Drawing.Size(123, 22);
-            this.sAVEToolStripMenuItem.Text = "SAVE AS..";
+            this.sAVEToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.sAVEToolStripMenuItem.Text = "SAVE AS RLE";
             this.sAVEToolStripMenuItem.Click += new System.EventHandler(this.sAVEToolStripMenuItem_Click);
             // 
             // sETTINGToolStripMenuItem
@@ -380,6 +381,7 @@
         private System.Windows.Forms.TextBox bmpSize;
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.TextBox jpegSize;
+        private System.Windows.Forms.SaveFileDialog saveFileDialog1;
     }
 }
 

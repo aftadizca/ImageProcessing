@@ -278,7 +278,7 @@ namespace ImageProcessing
             return bitmap;
         }
 
-        private int[][] GetArrayImage(Bitmap processedBitmap)
+        private void ToRLE(Bitmap processedBitmap)
         {
             BitmapData bitmapData = processedBitmap.LockBits(new Rectangle(0, 0, processedBitmap.Width, processedBitmap.Height), ImageLockMode.ReadWrite, processedBitmap.PixelFormat);
 
@@ -289,21 +289,34 @@ namespace ImageProcessing
             Marshal.Copy(ptrFirstPixel, pixels, 0, pixels.Length);
             int heightInPixels = bitmapData.Height;
             int widthInBytes = bitmapData.Width * bytesPerPixel;
-
-            int[][] pix = new int[heightInPixels][];
+            
+            StringBuilder sb = new StringBuilder();
+            int count = 1;
 
             for (int y = 0; y < heightInPixels; y++)
             {
                 int currentLine = y * bitmapData.Stride;
                 int[] linearray = new int[widthInBytes];
-                for (int x = 0; x < widthInBytes; x++)
+                for (int x = 0; x < widthInBytes; x+=bytesPerPixel)
                 {
-                    linearray[x] = (int)pixels[currentLine + x];
+                    if (x == widthInBytes-bytesPerPixel)
+                    {
+
+                    }
+                    else if(pixels[currentLine + x] == pixels[currentLine + x+bytesPerPixel] )
+                    {
+                        count++;
+                        continue;
+                    }  
+                    var cstr = count > 1 ? count + "'" : "";
+                    sb.Append($"{cstr}{(int) pixels[currentLine + x]} ");
+                    count = 1;
                 }
-                pix[y] = linearray;
+
+                sb.Append(Environment.NewLine);
             }
             processedBitmap.UnlockBits(bitmapData);
-            return pix;
+            File.WriteAllText(@"rleTemp.rle",sb.ToString());
         } 
 
         public void GrayScale_Parallel(Bitmap bmp)
@@ -444,7 +457,7 @@ namespace ImageProcessing
                             }
                             sety++;
                         }
-                        var a = pixel/6;
+                        var a = pixel;
                         if (a < 0)
                         {
                             a = 0;
@@ -647,6 +660,8 @@ namespace ImageProcessing
 
             ImageBox.Image = _bmpAwal;
 
+            ToRLE(_bmpAwal);
+            RLESize.Text = new FileInfo(@"rleTemp.rle").Length.ToString();
             bmpSize.Text = (_bmpAwal.Height * _bmpAwal.Width * Image.GetPixelFormatSize(_bmpAwal.PixelFormat)/8).ToString();
             jpegSize.Text = new FileInfo(openFileDialog1.FileName).Length.ToString();
         }

@@ -697,7 +697,7 @@ namespace ImageProcessing
             ImageBox.Image = _bmpAwal;
 
             //ImageToRLE(_bmpAwal);
-            RLESize.Text = new FileInfo(@"rleTemp.rle").Length.ToString();
+            
             bmpSize.Text = (_bmpAwal.Height * _bmpAwal.Width * Image.GetPixelFormatSize(_bmpAwal.PixelFormat)/8).ToString();
             jpegSize.Text = new FileInfo(openFileDialog1.FileName).Length.ToString();
         }
@@ -709,6 +709,7 @@ namespace ImageProcessing
             if (saveFileDialog1.ShowDialog() == DialogResult.OK)
             {
                 ImageToRLE(_bmpAwal,saveFileDialog1.FileName);
+                RLESize.Text = new FileInfo(@"rleTemp.rle").Length.ToString();
             }
         }
 

@@ -33,6 +33,7 @@ namespace ImageProcessing
         private Bitmap _bmpHpf;
         private Bitmap _bmpLpf;
         private Bitmap _bmpMedian;
+        private Bitmap _bmpQuantization;
         private int _bmpW;
         private int _bmpH;
         Stopwatch _sw = new Stopwatch();
@@ -329,6 +330,8 @@ namespace ImageProcessing
             StringBuilder sb = new StringBuilder();
             int count = 1;
 
+            Console.WriteLine("TEST "+pixels.Count(x=>x==255));
+
             for (int y = 0; y < heightInPixels; y++)
             {
                 int currentLine = y * bitmapData.Stride;
@@ -353,6 +356,89 @@ namespace ImageProcessing
             }
             processedBitmap.UnlockBits(bitmapData);
             File.WriteAllText(path,sb.ToString());
+        } 
+
+        private void Quantization(Bitmap processedBitmap, int bytes)
+        {
+            BitmapData bitmapData = processedBitmap.LockBits(new Rectangle(0, 0, processedBitmap.Width, processedBitmap.Height), ImageLockMode.ReadWrite, processedBitmap.PixelFormat);
+            int bytesPerPixel = Bitmap.GetPixelFormatSize(processedBitmap.PixelFormat) / 8;
+            long byteCount = bitmapData.Stride * processedBitmap.Height;
+            byte[] pixels = new byte[byteCount];
+            IntPtr ptrFirstPixel = bitmapData.Scan0;
+            Marshal.Copy(ptrFirstPixel, pixels, 0, pixels.Length);
+            int heightInPixels = bitmapData.Height;
+            int widthInBytes = bitmapData.Width * bytesPerPixel; 
+            
+            StringBuilder sb = new StringBuilder();
+            int count = 1;
+
+            List<Histogram> histogram = new List<Histogram>();
+
+            Parallel.For(0,256, i =>
+            {
+                var bCount = pixels.Count(x => x == (byte)i);
+                if ( bCount != 0)
+                {
+                    histogram.Add(new Histogram(){Byte = (int)i, Count = bCount/3});
+                }
+                
+            });
+            histogram=histogram.OrderBy(x => x.Byte).ToList();
+            int groupCount = (int)Math.Pow(2, bytes);
+            long perGroup = byteCount / groupCount/3;
+
+            Console.WriteLine("jumlah pergrup : "+perGroup+" bit:"+groupCount);
+
+            int penambah = 256 / groupCount;
+            int g = 0;
+            int p = 0;
+            var total = 0;
+            while (p<histogram.Count)
+            {
+                
+                total += histogram[p].Count;
+                if (total < perGroup)
+                {
+                    histogram[p].Group = g;
+                    p++;
+                }
+                else if (total > perGroup)
+                {
+                    if (total-perGroup > perGroup-total-histogram[p-1].Count)
+                    {   
+                        g+=penambah;
+                        histogram[p].Group = g;
+                        p++; 
+                        total = 0;
+                    }
+                    else
+                    {   
+                        histogram[p].Group = g;
+                        p++;
+                    } 
+                }
+            }
+
+            foreach (var i in histogram)
+            {
+                Console.WriteLine($"byte:{i.Byte} count:{i.Count} group:{i.Group}");
+            }
+
+            //Console.WriteLine(histogram.Where(x=>x.Byte<122).Sum(x=>x.Count));
+
+            for (int y = 0; y < heightInPixels; y++)
+            {
+                int currentLine = y * bitmapData.Stride;
+                for (int x = 0; x < widthInBytes; x += bytesPerPixel)
+                {
+                    var newColor = histogram.First(s => s.Byte == pixels[currentLine + x]);
+                    pixels[currentLine + x] = (byte)newColor.Group;
+                    pixels[currentLine + x + 1] = (byte)newColor.Group;
+                    pixels[currentLine + x + 2] = (byte)newColor.Group;
+                }
+            }
+            Marshal.Copy(pixels, 0, ptrFirstPixel, pixels.Length);
+            processedBitmap.UnlockBits(bitmapData);
         } 
 
         public void GrayScale_Parallel(Bitmap bmp)
@@ -502,9 +588,9 @@ namespace ImageProcessing
                         {
                             a = 255;
                         }
-                        currentLine[w] = (byte)a;
-                        currentLine[w + 1] = (byte)a;
-                        currentLine[w + 2] = (byte)a;
+                        currentLine[w] = (byte)(a);
+                        currentLine[w + 1] = (byte)(a);
+                        currentLine[w + 2] = (byte)(a);
                     }
                     HPF.ReportProgress(1);
                 }
@@ -695,8 +781,6 @@ namespace ImageProcessing
             _bmpAwal = e.Result as Bitmap;
 
             ImageBox.Image = _bmpAwal;
-
-            //ImageToRLE(_bmpAwal);
             
             bmpSize.Text = (_bmpAwal.Height * _bmpAwal.Width * Image.GetPixelFormatSize(_bmpAwal.PixelFormat)/8).ToString();
             jpegSize.Text = new FileInfo(openFileDialog1.FileName).Length.ToString();
@@ -1014,6 +1098,21 @@ namespace ImageProcessing
                 }
 
             }
+        }
+
+        private void Quantize_Click(object sender, EventArgs e)
+        {
+            if (_bmpQuantization == null)
+            {
+                _bmpQuantization = new Bitmap(_bmpAwal);
+                Quantization(_bmpQuantization,4);
+                ImageBox.Image = _bmpQuantization;
+            }
+            else
+            {
+                ImageBox.Image = _bmpQuantization;
+            }
+            
         }
     }
 }

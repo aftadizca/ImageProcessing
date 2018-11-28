@@ -56,6 +56,7 @@
             this.LPF = new System.ComponentModel.BackgroundWorker();
             this.Median = new System.ComponentModel.BackgroundWorker();
             this.saveFileDialog1 = new System.Windows.Forms.SaveFileDialog();
+            this.Quantize = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.ImageBox)).BeginInit();
             this.panel1.SuspendLayout();
             this.panel2.SuspendLayout();
@@ -111,6 +112,7 @@
             // 
             // panel2
             // 
+            this.panel2.Controls.Add(this.Quantize);
             this.panel2.Controls.Add(this.label3);
             this.panel2.Controls.Add(this.jpegSize);
             this.panel2.Controls.Add(this.label2);
@@ -213,7 +215,7 @@
             this.buttonMedian.FlatAppearance.CheckedBackColor = System.Drawing.Color.Red;
             this.buttonMedian.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.buttonMedian.Font = new System.Drawing.Font("Century Gothic", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.buttonMedian.Location = new System.Drawing.Point(3, 89);
+            this.buttonMedian.Location = new System.Drawing.Point(170, 46);
             this.buttonMedian.Name = "buttonMedian";
             this.buttonMedian.Size = new System.Drawing.Size(161, 37);
             this.buttonMedian.TabIndex = 22;
@@ -329,6 +331,22 @@
             this.Median.ProgressChanged += new System.ComponentModel.ProgressChangedEventHandler(this.Median_ProgressChanged);
             this.Median.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.Median_RunWorkerCompleted);
             // 
+            // Quantize
+            // 
+            this.Quantize.BackColor = System.Drawing.SystemColors.ControlDark;
+            this.Quantize.FlatAppearance.BorderSize = 0;
+            this.Quantize.FlatAppearance.CheckedBackColor = System.Drawing.Color.Red;
+            this.Quantize.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.Quantize.Font = new System.Drawing.Font("Century Gothic", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.Quantize.Location = new System.Drawing.Point(170, 87);
+            this.Quantize.Name = "Quantize";
+            this.Quantize.Size = new System.Drawing.Size(161, 37);
+            this.Quantize.TabIndex = 30;
+            this.Quantize.Text = "Quantization";
+            this.Quantize.UseVisualStyleBackColor = false;
+            this.Quantize.Click += new System.EventHandler(this.Quantize_Click);
+            this.Quantize.MouseDown += new System.Windows.Forms.MouseEventHandler(this.button4_MouseDown);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -382,6 +400,7 @@
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.TextBox jpegSize;
         private System.Windows.Forms.SaveFileDialog saveFileDialog1;
+        private System.Windows.Forms.Button Quantize;
     }
 }
 

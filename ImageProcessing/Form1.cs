@@ -1,20 +1,15 @@
-﻿using ProtoBuf;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data;
 using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using System.Xml.Schema;
 
 namespace ImageProcessing
 {
@@ -36,22 +31,19 @@ namespace ImageProcessing
         private Bitmap _bmpLpf;
         private Bitmap _bmpMedian;
         private Bitmap _bmpQuantization;
-        private int _bmpW;
-        private int _bmpH;
         Stopwatch _sw = new Stopwatch();
-        private int _processorCount = Environment.ProcessorCount/4;
+        private readonly int _processorCount = Environment.ProcessorCount/4;
 
-        private string _msg;
-        public bool changedBytes = true;
-        private int bytes;
+        public bool ChangedBytes = true;
+        private int _bytes;
 
-        private int[][] _hpfSet = new int[][] { new int[] { 0,-1,0 },
-                                               new int[] { -1,4,-1 },
-                                               new int[] { 0,-1,0 }};
+        private int[][] _hpfSet = { new[] { 0,-1,0 },
+                                    new[] { -1,4,-1 },
+                                    new[] { 0,-1,0 }};
 
-        private int[][] _lpfSet = new int[][] { new int[] { 1,0,1 },
-                                               new int[] { 0,1,0 },
-                                               new int[] { 1,0,1 }};
+        private int[][] _lpfSet = { new[] { 1,0,1 },
+                                    new[] { 0,1,0 },
+                                    new[] { 1,0,1 }};
 
         private int _medianLength = 3;
 
@@ -185,7 +177,7 @@ namespace ImageProcessing
 
             Bitmap bitmap = new Bitmap(arrayImage[0].Count, arrayImage.Count, PixelFormat.Format24bppRgb);
             BitmapData bitmapData = bitmap.LockBits(new Rectangle(0, 0, bitmap.Width, bitmap.Height), ImageLockMode.WriteOnly, PixelFormat.Format24bppRgb);
-            int bytesPerPixel = Bitmap.GetPixelFormatSize(bitmap.PixelFormat) / 8;
+            int bytesPerPixel = Image.GetPixelFormatSize(bitmap.PixelFormat) / 8;
             int widthInBytes = bitmapData.Width * bytesPerPixel;
             for (int y = 0; y < bitmap.Height; y++)
             {
@@ -208,7 +200,7 @@ namespace ImageProcessing
         {
             BitmapData bitmapData = processedBitmap.LockBits(new Rectangle(0, 0, processedBitmap.Width, processedBitmap.Height), ImageLockMode.ReadWrite, processedBitmap.PixelFormat);
 
-            int bytesPerPixel = Bitmap.GetPixelFormatSize(processedBitmap.PixelFormat) / 8;
+            int bytesPerPixel = Image.GetPixelFormatSize(processedBitmap.PixelFormat) / 8;
             long byteCount = bitmapData.Stride * processedBitmap.Height;
             byte[] pixels = new byte[byteCount];
             IntPtr ptrFirstPixel = bitmapData.Scan0;
@@ -219,12 +211,11 @@ namespace ImageProcessing
             StringBuilder sb = new StringBuilder();
             int count = 1;
 
-            Console.WriteLine("TEST "+pixels.Count(x=>x==255));
+            Console.WriteLine(@"TEST "+pixels.Count(x=>x==255));
 
             for (int y = 0; y < heightInPixels; y++)
             {
                 int currentLine = y * bitmapData.Stride;
-                int[] linearray = new int[widthInBytes];
                 for (int x = 0; x < widthInBytes; x+=bytesPerPixel)
                 {
                     if (x == widthInBytes-bytesPerPixel)
@@ -245,12 +236,7 @@ namespace ImageProcessing
             }
             processedBitmap.UnlockBits(bitmapData);
             File.WriteAllText(path,sb.ToString());
-        } 
-
-        private void Quantization(Bitmap processedBitmap, int bytes)
-        {
-            
-        } 
+        }
 
         public void GrayScale_Parallel(Bitmap bmp)
         {
@@ -441,7 +427,7 @@ namespace ImageProcessing
                                max += sisa;
                             }
                             
-                            Console.WriteLine($"awal:{heightInPixels*taskNumCopy/_processorCount} max:{max-1}");
+                            Console.WriteLine($@"awal:{heightInPixels*taskNumCopy/_processorCount} max:{max-1}");
 
                             for(int h = heightInPixels*taskNumCopy/_processorCount; h < max; h++) 
                             {
@@ -516,11 +502,9 @@ namespace ImageProcessing
                     for (int w = 0; w < widthInBytes; w = w + bytesPerPixel)
                     {
                         List<int> pixel = new List<int>();
-                        int sety = 0;
 
                         for (int y = -n; y <= n; y++)
-                        {
-                            int setx = 0;
+                        {                            
                             for (int x = -n * bytesPerPixel; x <= n * bytesPerPixel; x = x + bytesPerPixel)
                             {
                                 if ((h + y >= 0 && h + y < heightInPixels) && (w + x >= 0 && w + x < widthInBytes))
@@ -529,9 +513,7 @@ namespace ImageProcessing
                                     byte* getLine = ptrDataScan0 + ((h + y) * ori.Stride);
                                     pixel.Add(getLine[w + x]);
                                 }
-                                setx++;
                             }
-                            sety++;
                         }
                         pixel = pixel.OrderBy(x => x).AsParallel().ToList();
                         int a = pixel[pixel.Count() / 2];
@@ -562,12 +544,6 @@ namespace ImageProcessing
             grayLevel.SelectedIndex = 2;
         }
 
-        public Form1(string message)
-        {
-            this._msg = message;
-            InitializeComponent();
-        }
-
         private void toGrayscaleBW_DoWork(object sender, DoWorkEventArgs e)
         {
             Stopwatch sw = new Stopwatch();
@@ -578,7 +554,7 @@ namespace ImageProcessing
 
             e.Result = bmp;
             sw.Stop();
-            Console.WriteLine($"Grayscale processes in {sw.ElapsedMilliseconds} ms");
+            Console.WriteLine($@"Grayscale processes in {sw.ElapsedMilliseconds} ms");
         }
 
         private void toGrayscaleBW_ProgressChanged(object sender, ProgressChangedEventArgs e)
@@ -592,15 +568,17 @@ namespace ImageProcessing
             _bmpAwal = e.Result as Bitmap;
 
             ImageBox.Image = _bmpAwal;
-            
-            bmpSize.Text = (_bmpAwal.Height * _bmpAwal.Width * Image.GetPixelFormatSize(_bmpAwal.PixelFormat)/8).ToString();
+
+            if (_bmpAwal != null)
+                bmpSize.Text = (_bmpAwal.Height * _bmpAwal.Width * Image.GetPixelFormatSize(_bmpAwal.PixelFormat) / 8)
+                    .ToString();
             jpegSize.Text = new FileInfo(openFileDialog1.FileName).Length.ToString();
             progressBar1.Visible = false;
         }
 
         private void sAVEToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            saveFileDialog1.FileName = System.IO.Path.GetFileNameWithoutExtension(openFileDialog1.FileName)+".rle";
+            saveFileDialog1.FileName = Path.GetFileNameWithoutExtension(openFileDialog1.FileName)+".rle";
 
             if (saveFileDialog1.ShowDialog() == DialogResult.OK)
             {
@@ -621,12 +599,12 @@ namespace ImageProcessing
                 }
                 else
                 {
-                    _bmpAwal = new Bitmap(openFileDialog1.FileName) as Bitmap;
+                    _bmpAwal = new Bitmap(openFileDialog1.FileName);
                     ShowProgressBar(_bmpAwal.Height);
                     var bmp = _bmpAwal;
                     toGrayscaleBW.RunWorkerAsync(argument: bmp);
                 } 
-                Console.WriteLine($"Image Resolution {_bmpAwal.Width} x {_bmpAwal.Height} ");
+                Console.WriteLine($@"Image Resolution {_bmpAwal.Width} x {_bmpAwal.Height} ");
                 
                 _bmpHpf = null;
                 _bmpLpf = null;
@@ -653,9 +631,9 @@ namespace ImageProcessing
                 }
 
             }
-            catch (NullReferenceException ex)
+            catch (NullReferenceException)
             {
-                MessageBox.Show(this, "Pilih gambar terlebih dahulu","ERROR",MessageBoxButtons.OK,MessageBoxIcon.Asterisk);
+                MessageBox.Show(this, @"Pilih gambar terlebih dahulu",@"ERROR",MessageBoxButtons.OK,MessageBoxIcon.Asterisk);
 
             }
         }
@@ -666,7 +644,7 @@ namespace ImageProcessing
             _sw.Restart();
             HPF_Parallel(_bmpHpf, _hpfSet);
             _sw.Stop();
-            Console.WriteLine($"HPF : {_sw.ElapsedMilliseconds} ms");
+            Console.WriteLine($@"HPF : {_sw.ElapsedMilliseconds} ms");
         }
 
         private void HPF_ProgressChanged(object sender, ProgressChangedEventArgs e)
@@ -676,7 +654,7 @@ namespace ImageProcessing
 
         private void HPF_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
-            if (e.Cancelled) MessageBox.Show("Operation was canceled");
+            if (e.Cancelled) MessageBox.Show(@"Operation was canceled");
             else if (e.Error != null) MessageBox.Show(e.Error.Message);
             else 
             ImageBox.Image = _bmpHpf;
@@ -693,7 +671,7 @@ namespace ImageProcessing
             _sw.Restart(); 
             LPF_Parallel(_bmpLpf, _lpfSet);
             _sw.Stop();
-            Console.WriteLine($"Low Passing Filter Processed in {_sw.ElapsedMilliseconds} ms"); 
+            Console.WriteLine($@"Low Passing Filter Processed in {_sw.ElapsedMilliseconds} ms"); 
         }
 
         private void LPF_ProgressChanged(object sender, ProgressChangedEventArgs e)
@@ -703,7 +681,7 @@ namespace ImageProcessing
 
         private void LPF_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
-            if (e.Cancelled) MessageBox.Show("Operation was canceled");
+            if (e.Cancelled) MessageBox.Show(@"Operation was canceled");
             else if (e.Error != null) MessageBox.Show(e.Error.Message);
             else
                
@@ -728,9 +706,9 @@ namespace ImageProcessing
                     ImageBox.Image = _bmpLpf;
                 }
             }
-            catch (NullReferenceException ex)
+            catch (NullReferenceException)
             {
-                MessageBox.Show(this, "Pilih gambar terlebih dahulu", "ERROR", MessageBoxButtons.OK, MessageBoxIcon.Asterisk);
+                MessageBox.Show(this, @"Pilih gambar terlebih dahulu", @"ERROR", MessageBoxButtons.OK, MessageBoxIcon.Asterisk);
             }
         }
 
@@ -752,7 +730,8 @@ namespace ImageProcessing
                         c.BackColor = SystemColors.ControlDark;
                     }
                 }
-                btn.BackColor = SystemColors.ActiveCaption;
+
+                if (btn != null) btn.BackColor = SystemColors.ActiveCaption;
             }
         }
 
@@ -808,7 +787,7 @@ namespace ImageProcessing
 
             _sw.Stop();
             Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine($"Median Filter processed in {_sw.ElapsedMilliseconds} ms");
+            Console.WriteLine($@"Median Filter processed in {_sw.ElapsedMilliseconds} ms");
             Console.ResetColor();
         }
 
@@ -819,7 +798,7 @@ namespace ImageProcessing
 
         private void Median_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
-            if (e.Cancelled) MessageBox.Show("Operation was canceled");
+            if (e.Cancelled) MessageBox.Show(@"Operation was canceled");
             else if (e.Error != null) MessageBox.Show(e.Error.Message);
             else
                 ImageBox.Image = e.Result as Bitmap;
@@ -842,16 +821,11 @@ namespace ImageProcessing
                 }
 
             }
-            catch (NullReferenceException ex)
+            catch (NullReferenceException)
             {
-                MessageBox.Show(this, "Pilih gambar terlebih dahulu", "ERROR", MessageBoxButtons.OK, MessageBoxIcon.Asterisk);
+                MessageBox.Show(this, @"Pilih gambar terlebih dahulu", @"ERROR", MessageBoxButtons.OK, MessageBoxIcon.Asterisk);
 
             }
-        }
-
-        private void button5_Click(object sender, EventArgs e)
-        {
-            MessageBox.Show(_msg);
         }
 
         private void lPFSettingToolStripMenuItem_Click(object sender, EventArgs e)
@@ -859,7 +833,7 @@ namespace ImageProcessing
             using (_lpfSetting = new LpfSetting(_lpfSet)) {
                 if(_lpfSetting.ShowDialog() == DialogResult.OK)
                 {
-                    this._lpfSet = _lpfSetting.LpfSet;
+                    _lpfSet = _lpfSetting.LpfSet;
                     if (_bmpLpf!=null)
                     {
                         _bmpLpf = null;
@@ -882,7 +856,7 @@ namespace ImageProcessing
             {
                 if (_hpfSetting.ShowDialog() == DialogResult.OK)
                 {
-                    this._hpfSet = _hpfSetting.HpfSet;
+                    _hpfSet = _hpfSetting.HpfSet;
                     if (_bmpHpf != null)
                     {
                         _bmpHpf = null;
@@ -900,7 +874,7 @@ namespace ImageProcessing
             {
                 if (_medianSetting.ShowDialog() == DialogResult.OK)
                 {
-                    this._medianLength = _medianSetting.MedianLenght;
+                    _medianLength = _medianSetting.MedianLenght;
                     if (_bmpMedian != null)
                     {
                         _bmpMedian = null;
@@ -917,14 +891,14 @@ namespace ImageProcessing
 
             try
             {
-                if (_bmpQuantization ==null || changedBytes)
+                if (_bmpQuantization ==null || ChangedBytes)
                 {
 
                     _bmpQuantization = new Bitmap(_bmpAwal);
                     ShowProgressBar(_bmpAwal.Height);
                     //Quantization(_bmpQuantization, Int32.Parse(grayLevel.Text));
                     //ImageBox.Image = _bmpQuantization;
-                    bytes = int.Parse(grayLevel.Text);
+                    _bytes = int.Parse(grayLevel.Text);
                     QuantizationWorker.RunWorkerAsync(); 
                 }
                 else
@@ -932,10 +906,10 @@ namespace ImageProcessing
                     ImageBox.Image = _bmpQuantization;
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
 
-            MessageBox.Show(this, "Pilih gambar terlebih dahulu", "ERROR", MessageBoxButtons.OK, MessageBoxIcon.Asterisk);
+            MessageBox.Show(this, @"Pilih gambar terlebih dahulu", @"ERROR", MessageBoxButtons.OK, MessageBoxIcon.Asterisk);
             }
 
         }
@@ -954,10 +928,7 @@ namespace ImageProcessing
             IntPtr ptrFirstPixel = bitmapData.Scan0;
             Marshal.Copy(ptrFirstPixel, pixels, 0, pixels.Length);
             int heightInPixels = bitmapData.Height;
-            int widthInBytes = bitmapData.Width * bytesPerPixel;
-            
-            StringBuilder sb = new StringBuilder();
-            int count = 1;
+            int widthInBytes = bitmapData.Width * bytesPerPixel;       
 
             _histogram = new List<Histogram>();
 
@@ -966,15 +937,15 @@ namespace ImageProcessing
                 var bCount = pixels.Count(x => x == (byte)i);
                 if ( bCount != 0)
                 {
-                    _histogram.Add(new Histogram(){Byte = (int)i, Count = bCount/3});
+                    _histogram.Add(new Histogram {Byte = i, Count = bCount/3});
                 }
                 
             });
             _histogram=_histogram.OrderBy(x => x.Byte).ToList();
-            int groupCount = (int)Math.Pow(2, bytes);
+            int groupCount = (int)Math.Pow(2, _bytes);
             long perGroup = _bmpQuantization.Height * _bmpQuantization.Width / groupCount;
 
-            Console.WriteLine("jumlah pergrup : "+perGroup+" bit:"+groupCount );
+            //Console.WriteLine("jumlah pergrup : "+perGroup+" bit:"+groupCount );
 
             int penambah = 255 / (groupCount-1);
             int g = 0;
@@ -1010,10 +981,10 @@ namespace ImageProcessing
                 }
             }
 
-            foreach (var i in _histogram)
-            {
-                Console.WriteLine($"byte:{i.Byte} count:{i.Count} group:{i.Group}");
-            }
+            //foreach (var i in _histogram)
+            //{
+            //    Console.WriteLine($"byte:{i.Byte} count:{i.Count} group:{i.Group}");
+            //}
 
             Console.WriteLine(_histogram.Sum(x=>x.Count));
 
@@ -1045,14 +1016,14 @@ namespace ImageProcessing
             {
                 ImageBox.Image = e.Result as Bitmap; 
                 progressBar1.Visible = false;
-                changedBytes = false;
+                ChangedBytes = false;
             }
            
         }
 
         private void grayLevel_SelectedIndexChanged(object sender, EventArgs e)
         {
-            changedBytes = true;
+            ChangedBytes = true;
         }
 
         private void button1_Click_1(object sender, EventArgs e)

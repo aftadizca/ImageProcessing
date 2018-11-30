@@ -1,11 +1,15 @@
-﻿namespace ImageProcessing
+﻿using System.ComponentModel;
+using System.Windows.Forms;
+using System.Windows.Forms.DataVisualization.Charting;
+
+namespace ImageProcessing
 {
     partial class HistogramGrap
     {
         /// <summary>
         /// Required designer variable.
         /// </summary>
-        private System.ComponentModel.IContainer components = null;
+        private IContainer components = null;
 
         /// <summary>
         /// Clean up any resources being used.
@@ -99,7 +103,7 @@
 
         #endregion
 
-        private System.Windows.Forms.DataVisualization.Charting.Chart chart1;
-        private System.Windows.Forms.BindingSource histogramBindingSource;
+        private Chart chart1;
+        private BindingSource histogramBindingSource;
     }
 }

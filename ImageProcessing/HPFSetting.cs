@@ -1,11 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace ImageProcessing
@@ -61,15 +57,10 @@ namespace ImageProcessing
                     var intArr = Array.ConvertAll(item, x => int.Parse(x)).ToList();
                     temp.Add(intArr);
 
-                    this.HpfSet = temp.Select(p => p.ToArray()).ToArray();
-                    this.DialogResult = DialogResult.OK;
+                    HpfSet = temp.Select(p => p.ToArray()).ToArray();
+                    DialogResult = DialogResult.OK;
                 }
             }
-        }
-
-        private void richTextBox1_TextChanged(object sender, EventArgs e)
-        {
-
         }
 
         private void textBox1_TextChanged(object sender, EventArgs e)

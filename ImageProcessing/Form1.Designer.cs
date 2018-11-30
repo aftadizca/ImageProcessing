@@ -1,11 +1,14 @@
-﻿namespace ImageProcessing
+﻿using System.ComponentModel;
+using System.Windows.Forms;
+
+namespace ImageProcessing
 {
     partial class Form1
     {
         /// <summary>
         /// Required designer variable.
         /// </summary>
-        private System.ComponentModel.IContainer components = null;
+        private IContainer components = null;
 
         /// <summary>
         /// Clean up any resources being used.
@@ -438,40 +441,40 @@
 
         #endregion
 
-        private System.Windows.Forms.PictureBox ImageBox;
-        private System.Windows.Forms.Panel panel1;
-        private System.Windows.Forms.OpenFileDialog openFileDialog1;
-        private System.Windows.Forms.ProgressBar progressBar1;
-        private System.ComponentModel.BackgroundWorker toGrayscaleBW;
-        private System.Windows.Forms.Panel panel2;
-        private System.Windows.Forms.Button buttonHPF;
-        private System.Windows.Forms.Button buttonLPF;
-        private System.Windows.Forms.Button buttonMedian;
-        private System.Windows.Forms.MenuStrip menuStrip1;
-        private System.Windows.Forms.ToolStripMenuItem fILEToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem oPENToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem sAVEToolStripMenuItem;
-        private System.Windows.Forms.Button button4;
-        private System.ComponentModel.BackgroundWorker HPF;
-        private System.ComponentModel.BackgroundWorker LPF;
-        private System.Windows.Forms.ToolStripMenuItem sETTINGToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem lPFSettingToolStripMenuItem;
-        private System.ComponentModel.BackgroundWorker Median;
-        private System.Windows.Forms.ToolStripMenuItem medianSettingToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem hPFSettingToolStripMenuItem;
-        private System.Windows.Forms.Label label2;
-        private System.Windows.Forms.TextBox RLESize;
-        private System.Windows.Forms.Label label1;
-        private System.Windows.Forms.TextBox bmpSize;
-        private System.Windows.Forms.Label label3;
-        private System.Windows.Forms.TextBox jpegSize;
-        private System.Windows.Forms.SaveFileDialog saveFileDialog1;
-        private System.Windows.Forms.Button Quantize;
-        private System.Windows.Forms.Panel panel3;
-        private System.Windows.Forms.Label label4;
-        private System.Windows.Forms.ComboBox grayLevel;
-        private System.ComponentModel.BackgroundWorker QuantizationWorker;
-        private System.Windows.Forms.Button button1;
+        private PictureBox ImageBox;
+        private Panel panel1;
+        private OpenFileDialog openFileDialog1;
+        private ProgressBar progressBar1;
+        private BackgroundWorker toGrayscaleBW;
+        private Panel panel2;
+        private Button buttonHPF;
+        private Button buttonLPF;
+        private Button buttonMedian;
+        private MenuStrip menuStrip1;
+        private ToolStripMenuItem fILEToolStripMenuItem;
+        private ToolStripMenuItem oPENToolStripMenuItem;
+        private ToolStripMenuItem sAVEToolStripMenuItem;
+        private Button button4;
+        private BackgroundWorker HPF;
+        private BackgroundWorker LPF;
+        private ToolStripMenuItem sETTINGToolStripMenuItem;
+        private ToolStripMenuItem lPFSettingToolStripMenuItem;
+        private BackgroundWorker Median;
+        private ToolStripMenuItem medianSettingToolStripMenuItem;
+        private ToolStripMenuItem hPFSettingToolStripMenuItem;
+        private Label label2;
+        private TextBox RLESize;
+        private Label label1;
+        private TextBox bmpSize;
+        private Label label3;
+        private TextBox jpegSize;
+        private SaveFileDialog saveFileDialog1;
+        private Button Quantize;
+        private Panel panel3;
+        private Label label4;
+        private ComboBox grayLevel;
+        private BackgroundWorker QuantizationWorker;
+        private Button button1;
     }
 }
 

@@ -28,6 +28,8 @@ namespace ImageProcessing
         private LpfSetting _lpfSetting;
         private HpfSetting _hpfSetting;
         private MedianSetting _medianSetting;
+        private HistogramGrap _histogramGrap;
+        private List<Histogram> _histogram;
 
         private Bitmap _bmpAwal;
         private Bitmap _bmpHpf;
@@ -40,6 +42,8 @@ namespace ImageProcessing
         private int _processorCount = Environment.ProcessorCount/4;
 
         private string _msg;
+        public bool changedBytes = true;
+        private int bytes;
 
         private int[][] _hpfSet = new int[][] { new int[] { 0,-1,0 },
                                                new int[] { -1,4,-1 },
@@ -50,6 +54,7 @@ namespace ImageProcessing
                                                new int[] { 1,0,1 }};
 
         private int _medianLength = 3;
+
 
         #region Alternatives Method
 
@@ -144,123 +149,7 @@ namespace ImageProcessing
         //    return pixel[(pixel.Count()) / 2];
         //}
 
-        #endregion
-
-        #region API
-        [System.Runtime.InteropServices.DllImport("gdi32.dll")]
-        public static extern bool DeleteObject(IntPtr hObject);
-
-        [System.Runtime.InteropServices.DllImport("user32.dll")]
-        public static extern IntPtr GetDC(IntPtr hwnd);
-
-        [System.Runtime.InteropServices.DllImport("gdi32.dll")]
-        public static extern IntPtr CreateCompatibleDC(IntPtr hdc);
-
-        [System.Runtime.InteropServices.DllImport("user32.dll")]
-        public static extern int ReleaseDC(IntPtr hwnd, IntPtr hdc);
-
-        [System.Runtime.InteropServices.DllImport("gdi32.dll")]
-        public static extern int DeleteDC(IntPtr hdc);
-
-        [System.Runtime.InteropServices.DllImport("gdi32.dll")]
-        public static extern IntPtr SelectObject(IntPtr hdc, IntPtr hgdiobj);
-
-        [System.Runtime.InteropServices.DllImport("gdi32.dll")]
-        public static extern int BitBlt(IntPtr hdcDst, int xDst, int yDst, int w, int h, IntPtr hdcSrc, int xSrc, int ySrc, int rop);
-        static int _srccopy = 0x00CC0020;
-
-        [System.Runtime.InteropServices.DllImport("gdi32.dll")]
-        static extern IntPtr CreateDIBSection(IntPtr hdc, ref Bitmapinfo bmi, uint usage, out IntPtr bits, IntPtr hSection, uint dwOffset);
-        static uint _biRgb = 0;
-        static uint _dibRgbColors = 0;
-        [System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential)]
-        public struct Bitmapinfo
-        {
-            public uint biSize;
-            public int biWidth, biHeight;
-            public short biPlanes, biBitCount;
-            public uint biCompression, biSizeImage;
-            public int biXPelsPerMeter, biYPelsPerMeter;
-            public uint biClrUsed, biClrImportant;
-            [System.Runtime.InteropServices.MarshalAs(System.Runtime.InteropServices.UnmanagedType.ByValArray, SizeConst = 256)]
-            public uint[] cols;
-        }
-        static uint Makergb(int r,int g,int b)
-        { 
-            return ((uint)(b&255)) | ((uint)((r&255)<<8)) | ((uint)((g&255)<<16));
-        }
         #endregion 
-
-        static Bitmap CopyToBpp(System.Drawing.Bitmap b, int bpp)
-        { 
-         if (bpp!=1 && bpp!=8) throw new System.ArgumentException("1 or 8","bpp");
-
-          // Plan: built into Windows GDI is the ability to convert
-          // bitmaps from one format to another. Most of the time, this
-          // job is actually done by the graphics hardware accelerator card
-          // and so is extremely fast. The rest of the time, the job is done by
-          // very fast native code.
-          // We will call into this GDI functionality from C#. Our plan:
-          // (1) Convert our Bitmap into a GDI hbitmap (ie. copy unmanaged->managed)
-          // (2) Create a GDI monochrome hbitmap
-          // (3) Use GDI "BitBlt" function to copy from hbitmap into monochrome (as above)
-          // (4) Convert the monochrone hbitmap into a Bitmap (ie. copy unmanaged->managed)
-
-          int w=b.Width, h=b.Height;
-          IntPtr hbm = b.GetHbitmap(); // this is step (1)
-          //
-          // Step (2): create the monochrome bitmap.
-          // "BITMAPINFO" is an interop-struct which we define below.
-          // In GDI terms, it's a BITMAPHEADERINFO followed by an array of two RGBQUADs
-          Bitmapinfo bmi = new Bitmapinfo();
-          bmi.biSize=40;  // the size of the BITMAPHEADERINFO struct
-          bmi.biWidth=w;
-          bmi.biHeight=h;
-          bmi.biPlanes=1; // "planes" are confusing. We always use just 1. Read MSDN for more info.
-          bmi.biBitCount=(short)bpp; // ie. 1bpp or 8bpp
-          bmi.biCompression=_biRgb; // ie. the pixels in our RGBQUAD table are stored as RGBs, not palette indexes
-          bmi.biSizeImage = (uint)(((w+7)&0xFFFFFFF8)*h/8);
-          bmi.biXPelsPerMeter=1000000; // not really important
-          bmi.biYPelsPerMeter=1000000; // not really important
-          // Now for the colour table.
-          uint ncols = (uint)1<<bpp; // 2 colours for 1bpp; 256 colours for 8bpp
-          bmi.biClrUsed=ncols;
-          bmi.biClrImportant=ncols;
-          bmi.cols=new uint[256]; // The structure always has fixed size 256, even if we end up using fewer colours
-          if (bpp==1) {bmi.cols[0]=Makergb(0,0,0); bmi.cols[1]=Makergb(255,255,255);}
-          else {for (int i=0; i<ncols; i++) bmi.cols[i]=Makergb(i,i,i);}
-          // For 8bpp we've created an palette with just greyscale colours.
-          // You can set up any palette you want here. Here are some possibilities:
-          // greyscale: for (int i=0; i<256; i++) bmi.cols[i]=MAKERGB(i,i,i);
-          // rainbow: bmi.biClrUsed=216; bmi.biClrImportant=216; int[] colv=new int[6]{0,51,102,153,204,255};
-          //          for (int i=0; i<216; i++) bmi.cols[i]=MAKERGB(colv[i/36],colv[(i/6)%6],colv[i%6]);
-          // optimal: a difficult topic: http://en.wikipedia.org/wiki/Color_quantization
-          // 
-          // Now create the indexed bitmap "hbm0"
-          IntPtr bits0; // not used for our purposes. It returns a pointer to the raw bits that make up the bitmap.
-          IntPtr hbm0 = CreateDIBSection(IntPtr.Zero,ref bmi,_dibRgbColors,out bits0,IntPtr.Zero,0);
-          //
-          // Step (3): use GDI's BitBlt function to copy from original hbitmap into monocrhome bitmap
-          // GDI programming is kind of confusing... nb. The GDI equivalent of "Graphics" is called a "DC".
-          IntPtr sdc = GetDC(IntPtr.Zero);       // First we obtain the DC for the screen
-           // Next, create a DC for the original hbitmap
-          IntPtr hdc = CreateCompatibleDC(sdc); SelectObject(hdc,hbm); 
-          // and create a DC for the monochrome hbitmap
-          IntPtr hdc0 = CreateCompatibleDC(sdc); SelectObject(hdc0,hbm0);
-          // Now we can do the BitBlt:
-          BitBlt(hdc0,0,0,w,h,hdc,0,0,_srccopy);
-          // Step (4): convert this monochrome hbitmap back into a Bitmap:
-          System.Drawing.Bitmap b0 = System.Drawing.Bitmap.FromHbitmap(hbm0);
-          //
-          // Finally some cleanup.
-          DeleteDC(hdc);
-          DeleteDC(hdc0);
-          ReleaseDC(IntPtr.Zero,sdc);
-          DeleteObject(hbm);
-          DeleteObject(hbm0);
-          //
-          return b0;
-        }
 
         private unsafe Bitmap RLEToImage(string path)
         {
@@ -360,85 +249,7 @@ namespace ImageProcessing
 
         private void Quantization(Bitmap processedBitmap, int bytes)
         {
-            BitmapData bitmapData = processedBitmap.LockBits(new Rectangle(0, 0, processedBitmap.Width, processedBitmap.Height), ImageLockMode.ReadWrite, processedBitmap.PixelFormat);
-            int bytesPerPixel = Bitmap.GetPixelFormatSize(processedBitmap.PixelFormat) / 8;
-            long byteCount = bitmapData.Stride * processedBitmap.Height;
-            byte[] pixels = new byte[byteCount];
-            IntPtr ptrFirstPixel = bitmapData.Scan0;
-            Marshal.Copy(ptrFirstPixel, pixels, 0, pixels.Length);
-            int heightInPixels = bitmapData.Height;
-            int widthInBytes = bitmapData.Width * bytesPerPixel; 
             
-            StringBuilder sb = new StringBuilder();
-            int count = 1;
-
-            List<Histogram> histogram = new List<Histogram>();
-
-            Parallel.For(0,256, i =>
-            {
-                var bCount = pixels.Count(x => x == (byte)i);
-                if ( bCount != 0)
-                {
-                    histogram.Add(new Histogram(){Byte = (int)i, Count = bCount/3});
-                }
-                
-            });
-            histogram=histogram.OrderBy(x => x.Byte).ToList();
-            int groupCount = (int)Math.Pow(2, bytes);
-            long perGroup = byteCount / groupCount/3;
-
-            Console.WriteLine("jumlah pergrup : "+perGroup+" bit:"+groupCount);
-
-            int penambah = 256 / groupCount;
-            int g = 0;
-            int p = 0;
-            var total = 0;
-            while (p<histogram.Count)
-            {
-                
-                total += histogram[p].Count;
-                if (total < perGroup)
-                {
-                    histogram[p].Group = g;
-                    p++;
-                }
-                else if (total > perGroup)
-                {
-                    if (total-perGroup > perGroup-total-histogram[p-1].Count)
-                    {   
-                        g+=penambah;
-                        histogram[p].Group = g;
-                        p++; 
-                        total = 0;
-                    }
-                    else
-                    {   
-                        histogram[p].Group = g;
-                        p++;
-                    } 
-                }
-            }
-
-            foreach (var i in histogram)
-            {
-                Console.WriteLine($"byte:{i.Byte} count:{i.Count} group:{i.Group}");
-            }
-
-            //Console.WriteLine(histogram.Where(x=>x.Byte<122).Sum(x=>x.Count));
-
-            for (int y = 0; y < heightInPixels; y++)
-            {
-                int currentLine = y * bitmapData.Stride;
-                for (int x = 0; x < widthInBytes; x += bytesPerPixel)
-                {
-                    var newColor = histogram.First(s => s.Byte == pixels[currentLine + x]);
-                    pixels[currentLine + x] = (byte)newColor.Group;
-                    pixels[currentLine + x + 1] = (byte)newColor.Group;
-                    pixels[currentLine + x + 2] = (byte)newColor.Group;
-                }
-            }
-            Marshal.Copy(pixels, 0, ptrFirstPixel, pixels.Length);
-            processedBitmap.UnlockBits(bitmapData);
         } 
 
         public void GrayScale_Parallel(Bitmap bmp)
@@ -747,7 +558,8 @@ namespace ImageProcessing
 
         public Form1()
         {
-            InitializeComponent(); 
+            InitializeComponent();
+            grayLevel.SelectedIndex = 2;
         }
 
         public Form1(string message)
@@ -775,8 +587,7 @@ namespace ImageProcessing
         }
 
         private void toGrayscaleBW_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
-        {
-            progressBar1.Visible = false;
+        {   
             ImageBox.Image = e.Result as Bitmap;
             _bmpAwal = e.Result as Bitmap;
 
@@ -784,6 +595,7 @@ namespace ImageProcessing
             
             bmpSize.Text = (_bmpAwal.Height * _bmpAwal.Width * Image.GetPixelFormatSize(_bmpAwal.PixelFormat)/8).ToString();
             jpegSize.Text = new FileInfo(openFileDialog1.FileName).Length.ToString();
+            progressBar1.Visible = false;
         }
 
         private void sAVEToolStripMenuItem_Click(object sender, EventArgs e)
@@ -818,13 +630,14 @@ namespace ImageProcessing
                 
                 _bmpHpf = null;
                 _bmpLpf = null;
-                _bmpMedian = null; 
+                _bmpMedian = null;
+                _bmpQuantization = null;
             }
             button4_MouseDown(button4, new MouseEventArgs(MouseButtons.Left, 1, 0, 0, 0));
             button4.PerformClick();
 
         }
-
+        
         private void button1_Click(object sender, EventArgs e)
         {     
             try{  
@@ -866,10 +679,8 @@ namespace ImageProcessing
             if (e.Cancelled) MessageBox.Show("Operation was canceled");
             else if (e.Error != null) MessageBox.Show(e.Error.Message);
             else 
-            progressBar1.Visible = false;
             ImageBox.Image = _bmpHpf;
-            ImageBox.Invalidate();
-            ImageBox.Refresh();
+            progressBar1.Visible = false;
         }
 
         private void button4_Click(object sender, EventArgs e)
@@ -895,8 +706,9 @@ namespace ImageProcessing
             if (e.Cancelled) MessageBox.Show("Operation was canceled");
             else if (e.Error != null) MessageBox.Show(e.Error.Message);
             else
-                progressBar1.Visible = false;
-                ImageBox.Image = _bmpLpf; 
+               
+            ImageBox.Image = _bmpLpf; 
+            progressBar1.Visible = false;
 
         }
 
@@ -909,7 +721,7 @@ namespace ImageProcessing
                     ShowProgressBar(_bmpAwal.Height);
                     _bmpLpf = new Bitmap(_bmpAwal);
                    
-                    LPF.RunWorkerAsync();  
+                    LPF.RunWorkerAsync();
                 }
                 else
                 {
@@ -1010,8 +822,8 @@ namespace ImageProcessing
             if (e.Cancelled) MessageBox.Show("Operation was canceled");
             else if (e.Error != null) MessageBox.Show(e.Error.Message);
             else
+                ImageBox.Image = e.Result as Bitmap;
                 progressBar1.Visible = false;
-            ImageBox.Image = e.Result as Bitmap;
         }
 
         private void button2_Click(object sender, EventArgs e)
@@ -1102,17 +914,151 @@ namespace ImageProcessing
 
         private void Quantize_Click(object sender, EventArgs e)
         {
-            if (_bmpQuantization == null)
+
+            try
             {
-                _bmpQuantization = new Bitmap(_bmpAwal);
-                Quantization(_bmpQuantization,4);
-                ImageBox.Image = _bmpQuantization;
+                if (_bmpQuantization ==null || changedBytes)
+                {
+
+                    _bmpQuantization = new Bitmap(_bmpAwal);
+                    ShowProgressBar(_bmpAwal.Height);
+                    //Quantization(_bmpQuantization, Int32.Parse(grayLevel.Text));
+                    //ImageBox.Image = _bmpQuantization;
+                    bytes = int.Parse(grayLevel.Text);
+                    QuantizationWorker.RunWorkerAsync(); 
+                }
+                else
+                {
+                    ImageBox.Image = _bmpQuantization;
+                }
             }
-            else
+            catch (Exception ex)
             {
-                ImageBox.Image = _bmpQuantization;
+
+            MessageBox.Show(this, "Pilih gambar terlebih dahulu", "ERROR", MessageBoxButtons.OK, MessageBoxIcon.Asterisk);
             }
+
+        }
+
+        private void panel2_Paint(object sender, PaintEventArgs e)
+        {
+
+        }
+
+        private void QuantizationWorker_DoWork(object sender, DoWorkEventArgs e)
+        {
+            BitmapData bitmapData = _bmpQuantization.LockBits(new Rectangle(0, 0, _bmpQuantization.Width, _bmpQuantization.Height), ImageLockMode.ReadWrite, _bmpQuantization.PixelFormat);
+            int bytesPerPixel = Image.GetPixelFormatSize(_bmpQuantization.PixelFormat) / 8;
+            long byteCount = bitmapData.Stride * _bmpQuantization.Height;
+            byte[] pixels = new byte[byteCount];
+            IntPtr ptrFirstPixel = bitmapData.Scan0;
+            Marshal.Copy(ptrFirstPixel, pixels, 0, pixels.Length);
+            int heightInPixels = bitmapData.Height;
+            int widthInBytes = bitmapData.Width * bytesPerPixel;
             
+            StringBuilder sb = new StringBuilder();
+            int count = 1;
+
+            _histogram = new List<Histogram>();
+
+            Parallel.For(0,256, i =>
+            {
+                var bCount = pixels.Count(x => x == (byte)i);
+                if ( bCount != 0)
+                {
+                    _histogram.Add(new Histogram(){Byte = (int)i, Count = bCount/3});
+                }
+                
+            });
+            _histogram=_histogram.OrderBy(x => x.Byte).ToList();
+            int groupCount = (int)Math.Pow(2, bytes);
+            long perGroup = _bmpQuantization.Height * _bmpQuantization.Width / groupCount;
+
+            Console.WriteLine("jumlah pergrup : "+perGroup+" bit:"+groupCount );
+
+            int penambah = 255 / (groupCount-1);
+            int g = 0;
+            int p = 0;
+            var total = 0;
+            while (p<_histogram.Count)
+            {
+                
+                total += _histogram[p].Count;
+                if (total < perGroup)
+                {
+                    _histogram[p].Group = g;
+                    p++;
+                }
+                else if (total > perGroup)
+                {
+                    if (total-perGroup > perGroup-total-_histogram[p-1].Count)
+                    {
+                        if (g + penambah < (groupCount) * penambah)
+                        {
+                            g+=penambah;
+                        }
+                        
+                        _histogram[p].Group = g;
+                        p++; 
+                        total = 0;
+                    }
+                    else
+                    {   
+                        _histogram[p].Group = g;
+                        p++;
+                    } 
+                }
+            }
+
+            foreach (var i in _histogram)
+            {
+                Console.WriteLine($"byte:{i.Byte} count:{i.Count} group:{i.Group}");
+            }
+
+            Console.WriteLine(_histogram.Sum(x=>x.Count));
+
+            for (int y = 0; y < heightInPixels; y++)
+            {
+                int currentLine = y * bitmapData.Stride;
+                for (int x = 0; x < widthInBytes; x += bytesPerPixel)
+                {
+                    var newColor = _histogram.First(s => s.Byte == pixels[currentLine + x]);
+                    pixels[currentLine + x] = (byte)newColor.Group;
+                    pixels[currentLine + x + 1] = (byte)newColor.Group;
+                    pixels[currentLine + x + 2] = (byte)newColor.Group;
+                }
+                QuantizationWorker.ReportProgress(1);
+            }
+            Marshal.Copy(pixels, 0, ptrFirstPixel, pixels.Length);
+            _bmpQuantization.UnlockBits(bitmapData);
+            e.Result = _bmpQuantization;
+        }
+
+        private void QuantizationWorker_ProgressChanged(object sender, ProgressChangedEventArgs e)
+        {
+            progressBar1.Value += e.ProgressPercentage;
+        }
+
+        private void QuantizationWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            if (e.Result != null)
+            {
+                ImageBox.Image = e.Result as Bitmap; 
+                progressBar1.Visible = false;
+                changedBytes = false;
+            }
+           
+        }
+
+        private void grayLevel_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            changedBytes = true;
+        }
+
+        private void button1_Click_1(object sender, EventArgs e)
+        {
+            _histogramGrap = new HistogramGrap(_histogram);
+            _histogramGrap.ShowDialog();
         }
     }
 }

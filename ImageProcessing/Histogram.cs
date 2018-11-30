@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ImageProcessing
 {
-    class Histogram
+    public class Histogram
     {
         public int Byte { get; set; }
         public int Count { get; set; }

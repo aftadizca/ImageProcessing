@@ -34,6 +34,11 @@
             this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
             this.toGrayscaleBW = new System.ComponentModel.BackgroundWorker();
             this.panel2 = new System.Windows.Forms.Panel();
+            this.button1 = new System.Windows.Forms.Button();
+            this.grayLevel = new System.Windows.Forms.ComboBox();
+            this.label4 = new System.Windows.Forms.Label();
+            this.panel3 = new System.Windows.Forms.Panel();
+            this.Quantize = new System.Windows.Forms.Button();
             this.label3 = new System.Windows.Forms.Label();
             this.jpegSize = new System.Windows.Forms.TextBox();
             this.label2 = new System.Windows.Forms.Label();
@@ -56,7 +61,7 @@
             this.LPF = new System.ComponentModel.BackgroundWorker();
             this.Median = new System.ComponentModel.BackgroundWorker();
             this.saveFileDialog1 = new System.Windows.Forms.SaveFileDialog();
-            this.Quantize = new System.Windows.Forms.Button();
+            this.QuantizationWorker = new System.ComponentModel.BackgroundWorker();
             ((System.ComponentModel.ISupportInitialize)(this.ImageBox)).BeginInit();
             this.panel1.SuspendLayout();
             this.panel2.SuspendLayout();
@@ -112,6 +117,10 @@
             // 
             // panel2
             // 
+            this.panel2.Controls.Add(this.button1);
+            this.panel2.Controls.Add(this.grayLevel);
+            this.panel2.Controls.Add(this.label4);
+            this.panel2.Controls.Add(this.panel3);
             this.panel2.Controls.Add(this.Quantize);
             this.panel2.Controls.Add(this.label3);
             this.panel2.Controls.Add(this.jpegSize);
@@ -125,8 +134,73 @@
             this.panel2.Controls.Add(this.buttonHPF);
             this.panel2.Location = new System.Drawing.Point(12, 447);
             this.panel2.Name = "panel2";
-            this.panel2.Size = new System.Drawing.Size(680, 130);
+            this.panel2.Size = new System.Drawing.Size(680, 136);
             this.panel2.TabIndex = 4;
+            this.panel2.Paint += new System.Windows.Forms.PaintEventHandler(this.panel2_Paint);
+            // 
+            // button1
+            // 
+            this.button1.BackgroundImage = global::ImageProcessing.Properties.Resources.Combo_Chart_48px;
+            this.button1.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
+            this.button1.FlatAppearance.BorderSize = 0;
+            this.button1.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.button1.Location = new System.Drawing.Point(282, 95);
+            this.button1.Name = "button1";
+            this.button1.Size = new System.Drawing.Size(49, 36);
+            this.button1.TabIndex = 35;
+            this.button1.UseVisualStyleBackColor = true;
+            this.button1.Click += new System.EventHandler(this.button1_Click_1);
+            // 
+            // grayLevel
+            // 
+            this.grayLevel.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.grayLevel.FormattingEnabled = true;
+            this.grayLevel.Items.AddRange(new object[] {
+            "1",
+            "2",
+            "4",
+            "8"});
+            this.grayLevel.Location = new System.Drawing.Point(6, 110);
+            this.grayLevel.Name = "grayLevel";
+            this.grayLevel.Size = new System.Drawing.Size(119, 21);
+            this.grayLevel.Sorted = true;
+            this.grayLevel.TabIndex = 34;
+            this.grayLevel.SelectedIndexChanged += new System.EventHandler(this.grayLevel_SelectedIndexChanged);
+            // 
+            // label4
+            // 
+            this.label4.AutoSize = true;
+            this.label4.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label4.Location = new System.Drawing.Point(3, 94);
+            this.label4.Name = "label4";
+            this.label4.Size = new System.Drawing.Size(122, 13);
+            this.label4.TabIndex = 33;
+            this.label4.Text = "GRAYSCALE LEVEL";
+            // 
+            // panel3
+            // 
+            this.panel3.BackColor = System.Drawing.Color.Gray;
+            this.panel3.Location = new System.Drawing.Point(3, 87);
+            this.panel3.Margin = new System.Windows.Forms.Padding(0);
+            this.panel3.Name = "panel3";
+            this.panel3.Size = new System.Drawing.Size(328, 4);
+            this.panel3.TabIndex = 31;
+            // 
+            // Quantize
+            // 
+            this.Quantize.BackColor = System.Drawing.SystemColors.ControlDark;
+            this.Quantize.FlatAppearance.BorderSize = 0;
+            this.Quantize.FlatAppearance.CheckedBackColor = System.Drawing.Color.Red;
+            this.Quantize.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.Quantize.Font = new System.Drawing.Font("Century Gothic", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.Quantize.Location = new System.Drawing.Point(131, 94);
+            this.Quantize.Name = "Quantize";
+            this.Quantize.Size = new System.Drawing.Size(144, 37);
+            this.Quantize.TabIndex = 30;
+            this.Quantize.Text = "Quantization";
+            this.Quantize.UseVisualStyleBackColor = false;
+            this.Quantize.Click += new System.EventHandler(this.Quantize_Click);
+            this.Quantize.MouseDown += new System.Windows.Forms.MouseEventHandler(this.button4_MouseDown);
             // 
             // label3
             // 
@@ -264,14 +338,14 @@
             // oPENToolStripMenuItem
             // 
             this.oPENToolStripMenuItem.Name = "oPENToolStripMenuItem";
-            this.oPENToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.oPENToolStripMenuItem.Size = new System.Drawing.Size(139, 22);
             this.oPENToolStripMenuItem.Text = "OPEN";
             this.oPENToolStripMenuItem.Click += new System.EventHandler(this.oPENToolStripMenuItem_Click);
             // 
             // sAVEToolStripMenuItem
             // 
             this.sAVEToolStripMenuItem.Name = "sAVEToolStripMenuItem";
-            this.sAVEToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.sAVEToolStripMenuItem.Size = new System.Drawing.Size(139, 22);
             this.sAVEToolStripMenuItem.Text = "SAVE AS RLE";
             this.sAVEToolStripMenuItem.Click += new System.EventHandler(this.sAVEToolStripMenuItem_Click);
             // 
@@ -331,27 +405,19 @@
             this.Median.ProgressChanged += new System.ComponentModel.ProgressChangedEventHandler(this.Median_ProgressChanged);
             this.Median.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.Median_RunWorkerCompleted);
             // 
-            // Quantize
+            // QuantizationWorker
             // 
-            this.Quantize.BackColor = System.Drawing.SystemColors.ControlDark;
-            this.Quantize.FlatAppearance.BorderSize = 0;
-            this.Quantize.FlatAppearance.CheckedBackColor = System.Drawing.Color.Red;
-            this.Quantize.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.Quantize.Font = new System.Drawing.Font("Century Gothic", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.Quantize.Location = new System.Drawing.Point(170, 87);
-            this.Quantize.Name = "Quantize";
-            this.Quantize.Size = new System.Drawing.Size(161, 37);
-            this.Quantize.TabIndex = 30;
-            this.Quantize.Text = "Quantization";
-            this.Quantize.UseVisualStyleBackColor = false;
-            this.Quantize.Click += new System.EventHandler(this.Quantize_Click);
-            this.Quantize.MouseDown += new System.Windows.Forms.MouseEventHandler(this.button4_MouseDown);
+            this.QuantizationWorker.WorkerReportsProgress = true;
+            this.QuantizationWorker.WorkerSupportsCancellation = true;
+            this.QuantizationWorker.DoWork += new System.ComponentModel.DoWorkEventHandler(this.QuantizationWorker_DoWork);
+            this.QuantizationWorker.ProgressChanged += new System.ComponentModel.ProgressChangedEventHandler(this.QuantizationWorker_ProgressChanged);
+            this.QuantizationWorker.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.QuantizationWorker_RunWorkerCompleted);
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(704, 583);
+            this.ClientSize = new System.Drawing.Size(704, 590);
             this.Controls.Add(this.panel2);
             this.Controls.Add(this.panel1);
             this.Controls.Add(this.menuStrip1);
@@ -401,6 +467,11 @@
         private System.Windows.Forms.TextBox jpegSize;
         private System.Windows.Forms.SaveFileDialog saveFileDialog1;
         private System.Windows.Forms.Button Quantize;
+        private System.Windows.Forms.Panel panel3;
+        private System.Windows.Forms.Label label4;
+        private System.Windows.Forms.ComboBox grayLevel;
+        private System.ComponentModel.BackgroundWorker QuantizationWorker;
+        private System.Windows.Forms.Button button1;
     }
 }
 
